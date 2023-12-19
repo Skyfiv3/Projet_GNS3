@@ -1,0 +1,20 @@
+{
+    "AS1" : {
+        "IGP" : "OSPF",
+        "ADDRESS" : "2001:1::/64",
+        "ROUTEURS" : {
+            "R1" : {
+                "neighbor" :{
+                    "R2" : "ADDRESS",
+                    "R3" : "ADDRESS"
+                }
+            },
+            "R2" : {
+                "neighbor" :{
+                    "R1" : "ADDRESS",
+                    "R3" : "ADDRESS"
+                }
+            }
+        }   
+    }
+}
