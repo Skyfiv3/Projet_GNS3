@@ -1,9 +1,12 @@
 from gns3fy import Gns3Connector, Project, Node
-from telnetlib import Telnet
 
+from router.class_router import Router
+
+#from telnetlib import Telnet
+
+server = Gns3Connector("http://localhost:3080")
 
 ## PARTIE PROJET
-server = Gns3Connector("http://localhost:3080")
 
 projet = Project(name="GNS3_project1", connector=server)
 
@@ -13,6 +16,16 @@ projet.get()
 #print(f"Name: {projet.name} -- Status: {projet.status} -- Is auto_closed?: {projet.auto_close}")
 
 projet.open()
+
+noeuds =  projet.nodes
+
+noeuds[0].get()
+
+R1 = Router(noeuds[0])
+
+print(R1.voisins)
+
+
 
 '''
 for node in projet.nodes:
@@ -29,12 +42,18 @@ for node in projet.nodes:
 ##PARTIE NODE
 Nodes =  projet.nodes
 R1 = Nodes[0]
+R1.get()
+'''
 
+
+
+
+'''
 Socket_R1 = Telnet(R1.console_host,str(R1.console)) 
 Socket_R1.write(bytes("conf t\r",encoding="ascii"))
 '''
 
-
+'''
 def init_consoles(projet):
     noeuds = {}
     for i in projet.nodes :
@@ -42,3 +61,4 @@ def init_consoles(projet):
     return noeuds
 
 noeuds=init_consoles(projet)
+'''
