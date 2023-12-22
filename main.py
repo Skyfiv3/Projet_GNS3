@@ -22,6 +22,7 @@ noeuds =  projet.nodes
 noeuds[0].get()
 
 R1 = Router(noeuds[0])
+R1.envoi_commande("conf t")
 
 print(R1.voisins)
 

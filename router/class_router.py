@@ -27,6 +27,18 @@ class Router :
             voisins.append({'id':id,"port":port})
         return voisins
      
+    def envoi_commande(self,commande:str) -> None:
+
+        if not isinstance(commande, str):
+            # Si commande n'est pas une chaîne de caractères, vous pouvez lever une exception
+            raise ValueError("La commande doit être une chaîne de caractères (str)")
+
+        # Vérifie si la commande se termine par '\r'
+        if not commande.endswith('\r'):
+            # Ajoute '\r' à la fin de la commande si ce n'est pas déjà le cas
+            commande += '\r'
+
+        self.console.write(bytes(commande, encoding="ascii"))
 
 
 
