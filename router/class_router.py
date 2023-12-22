@@ -8,15 +8,15 @@ class Router :
         self.nom = node.name
         self.noeud = node
         self.id = node.node_id
-        self.voisins = self.recherche_voisins(node)
+        self.voisins = self.recherche_voisins()
         self.console = Telnet(self.noeud.console_host,str(self.noeud.console))
         
 
 
-    def recherche_voisins(self,node: Node) -> list :
+    def recherche_voisins(self) -> list :
         voisins = []
 
-        for i in node.links :
+        for i in self.noeud.links :
 
             for j in i.nodes :
                 if j['node_id'] == self.id :

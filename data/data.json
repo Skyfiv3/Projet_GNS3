@@ -1,20 +1,31 @@
 {
     "AS1" : {
+        "IGP" : "RIP",
+        "numero_AS" : 1,
+        "plage_IP" : {
+            "physical_interfaces": "10.0.0.0/24",
+            "loopback_interfaces": "192.168.0.0/24"
+        },
+
+        "routeurs" : {
+            "1" : "R1",
+            "2" : "R2",
+            "3" : "R3"
+        }
+    },
+
+    "AS2" : {
         "IGP" : "OSPF",
-        "ADDRESS" : "2001:1::/64",
-        "ROUTEURS" : {
-            "R1" : {
-                "neighbor" :{
-                    "R2" : "ADDRESS",
-                    "R3" : "ADDRESS"
-                }
-            },
-            "R2" : {
-                "neighbor" :{
-                    "R1" : "ADDRESS",
-                    "R3" : "ADDRESS"
-                }
-            }
-        }   
-    }
+        "numero_AS" : 2,
+        "plage_IP" : {
+            "physical_interfaces": "10.0.0.0/24",
+            "loopback_interfaces": "192.168.0.0/24"
+        },
+
+        "routeurs" : {
+            "1" : "R4",
+            "2" : "R5",
+            "3" : "R6"
+        }
+    }   
 }
