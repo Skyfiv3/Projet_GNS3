@@ -3,14 +3,55 @@
         "IGP" : "RIP",
         "numero_AS" : 1,
         "plage_IP" : {
-            "physical_interfaces": "10.0.0.0/24",
-            "loopback_interfaces": "192.168.0.0/24"
+            "physical_interfaces": "2001::/64",
+            "loopback_interfaces": "1001::/64"
         },
 
+
         "routeurs" : {
-            "1" : "R1",
-            "2" : "R2",
-            "3" : "R3"
+            "1" : {
+                "nom" : "R1",
+                "voisins" : {
+                    "1" : {
+                        "nom" : "R2",
+                        "interface" : "G0/1",
+                        "AS" : "AS1"
+                    } 
+                }
+            },
+            "2" : {
+                "nom" : "R2",
+                "voisins" : {
+                    "1" : {
+                        "nom" : "R1",
+                        "interface" : "G0/1",
+                        "AS" : "AS1"
+                    },
+                    "2" : {
+                        "nom" : "R3",
+                        "interface" : "G0/2",
+                        "AS" : "AS1"
+                    } 
+                }
+            },
+            "3" : {
+                "nom" : "R3",
+                "voisins" : {
+                    "1" : {
+                        "nom" : "R2",
+                        "interface" : "G0/1",
+                        "AS" : "AS1"
+                    },
+                    "2" : {
+                        "nom" : "R4",
+                        "interface" : "G0/2",
+                        "AS" : "AS2",
+                        "Addresse perso" : "2003:1::1",
+                        "Addresse voisin" : "2003:1::2"
+                    } 
+                }
+            }
+
         }
     },
 
@@ -18,14 +59,53 @@
         "IGP" : "OSPF",
         "numero_AS" : 2,
         "plage_IP" : {
-            "physical_interfaces": "10.0.0.0/24",
-            "loopback_interfaces": "192.168.0.0/24"
+            "physical_interfaces": "2002::/64",
+            "loopback_interfaces": "1002::/64"
         },
 
         "routeurs" : {
-            "1" : "R4",
-            "2" : "R5",
-            "3" : "R6"
+            "1" : {
+                "nom" : "R6",
+                "voisins" : {
+                    "1" : {
+                        "nom" : "R5",
+                        "interface" : "G0/1",
+                        "AS" : "AS2"
+                    } 
+                }
+            },
+            "2" : {
+                "nom" : "R5",
+                "voisins" : {
+                    "1" : {
+                        "nom" : "R6",
+                        "interface" : "G0/1",
+                        "AS" : "AS2"
+                    },
+                    "2" : {
+                        "nom" : "R4",
+                        "interface" : "G0/2",
+                        "AS" : "AS2"
+                    } 
+                }
+            },
+            "3" : {
+                "nom" : "R4",
+                "voisins" : {
+                    "1" : {
+                        "nom" : "R5",
+                        "interface" : "G0/1",
+                        "AS" : "AS1"
+                    },
+                    "2" : {
+                        "nom" : "R3",
+                        "interface" : "G0/2",
+                        "AS" : "AS1",
+                        "Addresse perso" : "2003:1::2",
+                        "Addresse voisin" : "2003:1::1"
+                    } 
+                }
+            }
         }
     }   
 }
