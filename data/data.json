@@ -1,111 +1,45 @@
 {
-    "AS1" : {
-        "IGP" : "RIP",
-        "numero_AS" : 1,
-        "plage_IP" : {
-            "physical_interfaces": "2001::/64",
-            "loopback_interfaces": "1001::/64"
+    "AS" :{
+        "AS1" : {
+            "IGP" : "RIP",
+            "plage_IP" : {
+                "physical_interfaces": "2001::/64",
+                "loopback_interfaces": "1001::/64"
+            },
+
+            "routeurs" : [
+                "R1",
+                "R2",
+                "R3"
+            ]
         },
 
-
-        "routeurs" : {
-            "1" : {
-                "nom" : "R1",
-                "voisins" : {
-                    "1" : {
-                        "nom" : "R2",
-                        "interface" : "G0/1",
-                        "AS" : "AS1"
-                    } 
-                }
+        "AS2" : {
+            "IGP" : "OSPF",
+            "numero_AS" : 2,
+            "plage_IP" : {
+                "physical_interfaces": "2002::/64",
+                "loopback_interfaces": "1002::/64"
             },
-            "2" : {
-                "nom" : "R2",
-                "voisins" : {
-                    "1" : {
-                        "nom" : "R1",
-                        "interface" : "G0/1",
-                        "AS" : "AS1"
-                    },
-                    "2" : {
-                        "nom" : "R3",
-                        "interface" : "G0/2",
-                        "AS" : "AS1"
-                    } 
-                }
-            },
-            "3" : {
-                "nom" : "R3",
-                "voisins" : {
-                    "1" : {
-                        "nom" : "R2",
-                        "interface" : "G0/1",
-                        "AS" : "AS1"
-                    },
-                    "2" : {
-                        "nom" : "R4",
-                        "interface" : "G0/2",
-                        "AS" : "AS2",
-                        "Addresse perso" : "2003:1::1",
-                        "Addresse voisin" : "2003:1::2"
-                    } 
-                }
-            }
 
+            "routeurs" : [
+                "R4",
+                "R5",
+                "R6"
+            ]
         }
     },
+    "links" :{
+        "iGP" : [
+            [["R1","G1/0"],["R2","G1/0"]],
+            [["R2","G2/0"],["R3","G2/0"]],
+            [["R4","G2/0"],["R5","G2/0"]],
+            [["R5","G1/0"],["R6","G1/0"]]
+        ],
+        "eGP" : [
+            [["R3","G3/0","2003:1::1"],["R4","G3/0","2003:1::2"]]
+        ]
 
-    "AS2" : {
-        "IGP" : "OSPF",
-        "numero_AS" : 2,
-        "plage_IP" : {
-            "physical_interfaces": "2002::/64",
-            "loopback_interfaces": "1002::/64"
-        },
+    }
 
-        "routeurs" : {
-            "1" : {
-                "nom" : "R6",
-                "voisins" : {
-                    "1" : {
-                        "nom" : "R5",
-                        "interface" : "G0/1",
-                        "AS" : "AS2"
-                    } 
-                }
-            },
-            "2" : {
-                "nom" : "R5",
-                "voisins" : {
-                    "1" : {
-                        "nom" : "R6",
-                        "interface" : "G0/1",
-                        "AS" : "AS2"
-                    },
-                    "2" : {
-                        "nom" : "R4",
-                        "interface" : "G0/2",
-                        "AS" : "AS2"
-                    } 
-                }
-            },
-            "3" : {
-                "nom" : "R4",
-                "voisins" : {
-                    "1" : {
-                        "nom" : "R5",
-                        "interface" : "G0/1",
-                        "AS" : "AS1"
-                    },
-                    "2" : {
-                        "nom" : "R3",
-                        "interface" : "G0/2",
-                        "AS" : "AS1",
-                        "Addresse perso" : "2003:1::2",
-                        "Addresse voisin" : "2003:1::1"
-                    } 
-                }
-            }
-        }
-    }   
 }
