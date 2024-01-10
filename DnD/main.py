@@ -1,7 +1,6 @@
 import os
 import re
 import json
-from router import router
 
 def lister_routers(repertoire_projet):
 
