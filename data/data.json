@@ -3,8 +3,8 @@
         "AS1" : {
             "IGP" : "RIP",
             "plage_IP" : {
-                "physical_interfaces": "2001::/64",
-                "loopback_interfaces": "1001::/64"
+                "interfaces_physique": "2001::/64",
+                "interfaces_loopback": "1001::/64"
             },
 
             "routeurs" : [
@@ -22,8 +22,8 @@
             "IGP" : "OSPF",
             "numero_AS" : 2,
             "plage_IP" : {
-                "physical_interfaces": "2002::/64",
-                "loopback_interfaces": "1002::/64"
+                "interfaces_physique": "2002::/64",
+                "interfaces_loopback": "1002::/64"
             },
 
             "routeurs" : [
