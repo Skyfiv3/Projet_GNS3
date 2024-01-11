@@ -132,7 +132,27 @@ def recherche_bordures(data) :
                 new_routeurs.append({"nom":router,"etat":"interne"})
         
         data["AS"][AS]["routeurs"] = new_routeurs
-                    
+
 
 adressage(intentions)
+recherche_bordures(intentions)
 print(intentions)
+
+'''
+def logic() :
+
+    adressage(intentions)
+    recherche_bordures(intentions)
+
+    for AS in data["AS"] :
+
+        IGP = data["AS"][AS]["IGP"]
+
+        for router in data["AS"][AS]["routers"] :
+
+            constante(router)
+
+            for lien in data["AS"][AS]["liens"] :
+                if lien["nom"] == router :
+                    
+'''
