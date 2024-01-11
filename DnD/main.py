@@ -79,7 +79,27 @@ def adressage(data):
                 adresse_routeur_str = ':'.join([hex(e)[2:] for e in adresse_lien]) + f'::{j+1}/64'
                 data["AS"][AS]["liens"][i][j].append(adresse_routeur_str)
 
-                
+def recherche_bordures(data) :
 
-adressage(intentions)
+    for AS in data["AS"] :
+
+        new_routeurs = []
+
+        for router in data["AS"][AS]["routeurs"] :
+
+            bordure = False
+
+            for eGP in data["liens_eGP"] :
+                for eGP_routeur in eGP :
+                    if router == eGP_routeur[0] :
+                        new_routeurs.append({"nom":router,"etat":"bordure"})
+                        bordure = True
+            
+            if not bordure :
+                new_routeurs.append({"nom":router,"etat":"interne"})
+        
+        data["AS"][AS]["routeurs"] = new_routeurs
+                    
+
+recherche_bordures(intentions)
 print(intentions)
