@@ -1,6 +1,7 @@
 import os
 import re
 import json
+import ipaddress
 
 def lister_routers(repertoire_projet):
 
@@ -56,61 +57,69 @@ def constante(router):
 # Exemple d'utilisation
 #constante("R1")
 
+
+
 def adressage(data):
-    interfaces=["interfaces_physique","interfaces_loopback"]
     
     for AS in data["AS"]:
     
-        
-        for interface in interfaces :
-            adresse=data["AS"][AS]["plage_IP"][interface]
-            nombre_liens=len(data["AS"][AS]["liens"])
-        
-        
+    
+
+        adresse=data["AS"][AS]["plage_IP"]["interfaces_physique"]
+        nombre_liens=len(data["AS"][AS]["liens"])
+    
+    
 
 
-            # Séparer les éléments en fonction des ":"
-            elements = adresse.split(':')
+        # Séparer les éléments en fonction des ":"
+        elements = adresse.split(':')
 
-            # Remplacer "/64" par une chaîne vide
-            elements[-1] = elements[-1].replace('/64', '')
+        # Remplacer "/64" par une chaîne vide
+        elements[-1] = elements[-1].replace('/64', '')
 
-            # Convertir les éléments en entiers
-            elements = [int(e, 16) if e else 0 for e in elements]
+        # Convertir les éléments en entiers
+        elements = [int(e, 16) if e else 0 for e in elements]
 
-            # Si le nombre d'éléments est inférieur à 4, remplir avec des 0
-            while len(elements) < 4:
-                elements.append(0)
+        # Si le nombre d'éléments est inférieur à 4, remplir avec des 0
+        while len(elements) < 4:
+            elements.append(0)
 
 
-            # Créer une plage d'adresses pour chaque lien
-            for i in range(nombre_liens):
-                adresse_lien = elements.copy()  # Créer une copie pour chaque itération
-                adresse_lien[-1] += i  # Incrémenter le dernier élément pour chaque lien
-                adresse_lien_str = ':'.join([hex(e)[2:] for e in adresse_lien]) + '::/64'
-                
+        # Créer une plage d'adresses pour chaque lien
+        for i in range(nombre_liens):
+            adresse_lien = elements.copy()  # Créer une copie pour chaque itération
+            adresse_lien[-1] += i  # Incrémenter le dernier élément pour chaque lien
+            adresse_lien_str = ':'.join([hex(e)[2:] for e in adresse_lien]) + '::/64'
+            
 
-                data["AS"][AS]["liens"][i].append(adresse_lien_str)
-                
-                for j in range(2):
-                    if interface == "interfaces_loopback" :
-                        data["AS"][AS]["liens"][i][j].append("Loopback0")
-                    else : 
-                        data["AS"][AS]["liens"][i][j][1] = "GigabitEthernet" + data["AS"][AS]["liens"][i][j][1][1:]
-                    
-                    adresse_routeur_str = ':'.join([hex(e)[2:] for e in adresse_lien]) + f'::{j+1}/64'
-                        
-                    data["AS"][AS]["liens"][i][j].append(adresse_routeur_str)
-
-        for i in range(len(data["AS"][AS]["liens"])) : 
+            data["AS"][AS]["liens"][i].append(adresse_lien_str)
+            
             for j in range(2) :
 
-                dico = {"nom":data["AS"][AS]["liens"][i][j][0],data["AS"][AS]["liens"][i][j][1]:data["AS"][AS]["liens"][i][j][2],data["AS"][AS]["liens"][i][j][3]:data["AS"][AS]["liens"][i][j][4]}
+                data["AS"][AS]["liens"][i][j][1] = "GigabitEthernet" + data["AS"][AS]["liens"][i][j][1][1:]
+            
+                adresse_routeur_str = ':'.join([hex(e)[2:] for e in adresse_lien]) + f'::{j+1}/64'
+                    
+                data["AS"][AS]["liens"][i][j].append(adresse_routeur_str)
+
+        for i in range(len(data["AS"][AS]["liens"])) : 
+            for j in range(2) : 
+
+                dico = {"nom":data["AS"][AS]["liens"][i][j][0],data["AS"][AS]["liens"][i][j][1]:data["AS"][AS]["liens"][i][j][2]}
                 data["AS"][AS]["liens"][i][j] = dico
 
-                       
 
+        nb_routeurs = len(data["AS"][AS]["routeurs"])
 
+        plage = data["AS"][AS]["plage_IP"]["interfaces_loopback"]
+
+        network = ipaddress.IPv6Network(plage, strict=False)
+
+        # Générer une liste d'adresses IPv6
+        adresses_ipv6 = [str(network.network_address + i+1) + '/64' for i in range(nb_routeurs)]
+
+        for i in range(nb_routeurs) :
+            data["AS"][AS]["routeurs"][i]["Loopback0"] = adresses_ipv6[i]
 
 def recherche_bordures(data) :
 
@@ -133,26 +142,32 @@ def recherche_bordures(data) :
         
         data["AS"][AS]["routeurs"] = new_routeurs
 
+                
 
-adressage(intentions)
-recherche_bordures(intentions)
-print(intentions)
 
-'''
-def logic() :
+def logic(data) :
 
-    adressage(intentions)
     recherche_bordures(intentions)
+    adressage(intentions)
+
 
     for AS in data["AS"] :
 
         IGP = data["AS"][AS]["IGP"]
 
-        for router in data["AS"][AS]["routers"] :
+        for routeur in data["AS"][AS]["routeurs"] :
 
-            constante(router)
+            #constante(router)
 
             for lien in data["AS"][AS]["liens"] :
-                if lien["nom"] == router :
+                for routeur_in_lien in lien :
+                    if type(routeur_in_lien) ==  dict :
                     
-'''
+                        if routeur_in_lien["nom"] == routeur["nom"] :
+                            interface = list(routeur_in_lien.keys())[1]
+                            print(interface)
+                            #inserer fonction de config interface
+
+
+
+logic(intentions)

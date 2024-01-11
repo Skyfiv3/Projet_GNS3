@@ -7,9 +7,9 @@
                 "interfaces_loopback": "1001::/64"
             },
             "routeurs": [
-                {"nom": "R1", "etat": "interne"},
-                {"nom": "R2", "etat": "interne"}, 
-                {"nom": "R3", "etat": "bordure"}
+                {"nom": "R1", "etat": "interne","Loopback0": "1001::1/64"},
+                {"nom": "R2", "etat": "interne","Loopback0": "1001::2/64"}, 
+                {"nom": "R3", "etat": "bordure","Loopback0": "1001::3/64"}
                 ],
             "liens": [
                 [
