@@ -72,10 +72,14 @@ def adressage(data):
             adresse_lien = elements.copy()  # Créer une copie pour chaque itération
             adresse_lien[-1] += i  # Incrémenter le dernier élément pour chaque lien
             adresse_lien_str = ':'.join([hex(e)[2:] for e in adresse_lien]) + '::/64'
+            
 
             data["AS"][AS]["liens"][i].append(adresse_lien_str)
+            for j in range(2):
+                adresse_routeur_str = ':'.join([hex(e)[2:] for e in adresse_lien]) + f'::{j+1}/64'
+                data["AS"][AS]["liens"][i][j].append(adresse_routeur_str)
 
-        
+                
 
 adressage(intentions)
 print(intentions)
