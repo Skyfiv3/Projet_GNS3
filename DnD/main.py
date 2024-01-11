@@ -40,11 +40,27 @@ chemin_data = os.path.join(os.path.dirname(__file__),'..','data','data.json')
 with open(chemin_data,"r") as data :
     intentions = json.load(data)
 
-def constante(router) :
-    
-    return "!\n!\n!\n!\n!\n!\n!\n!\n\n!\n! Last configuration change at 14:16:26 UTC Wed Dec 20 2023\n!\nversion 15.2\nservice timestamps debug datetime msec\nservice timestamps log datetime msec\n!\nhostname "+router+"\n!\nboot-start-marker\nboot-end-marker\n!\n!\n!\nno aaa new-model\nno ip icmp rate-limit unreachable\nip cef\n!\n!\n!\n!\n!\n!\nno ip domain lookup\nipv6 unicast-routing\nipv6 cef\n!\n!\nmultilink bundle-name authenticated\n!\n!\n!\n!\n!\n!\n!\n!\n!\nip tcp synwait-time 5\n! \n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!"
+
+
+def constante(router):
+    config = "!\n!\n!\n!\n!\n!\n!\n!\n\n!\n! Last configuration change at 14:16:26 UTC Wed Dec 20 2023\n!\nversion 15.2\nservice timestamps debug datetime msec\nservice timestamps log datetime msec\n!\nhostname " + router + "\n!\nboot-start-marker\nboot-end-marker\n!\n!\n!\nno aaa new-model\nno ip icmp rate-limit unreachable\nip cef\n!\n!\n!\n!\n!\n!\nno ip domain lookup\nipv6 unicast-routing\nipv6 cef\n!\n!\nmultilink bundle-name authenticated\n!\n!\n!\n!\n!\n!\n!\n!\n!\nip tcp synwait-time 5\n! \n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!"
+
+    # Obtenir le chemin complet du fichier dans le dossier config_files
+    dossier_config = os.path.join(os.path.dirname(__file__), "config_files")
+    filename = os.path.join(dossier_config, router + ".cfg")
+
+    # Écrire la configuration dans le fichier spécifié
+    with open(filename, 'w') as fichier:
+        fichier.write(config)
+
+# Exemple d'utilisation
+constante("R1")
 
 def adressage(data):
+    interfaces=["interfaces_physique","interfaces_loopback"]
+    
+
+    
     for AS in data["AS"]:
         adresse=data["AS"][AS]["plage_IP"]["interfaces_physique"]
         nombre_liens=len(data["AS"][AS]["liens"])
@@ -65,7 +81,6 @@ def adressage(data):
         while len(elements) < 4:
             elements.append(0)
 
-        resultats = []
 
         # Créer une plage d'adresses pour chaque lien
         for i in range(nombre_liens):
@@ -75,8 +90,10 @@ def adressage(data):
             
 
             data["AS"][AS]["liens"][i].append(adresse_lien_str)
+            
             for j in range(2):
                 adresse_routeur_str = ':'.join([hex(e)[2:] for e in adresse_lien]) + f'::{j+1}/64'
+                    
                 data["AS"][AS]["liens"][i][j].append(adresse_routeur_str)
 
 def recherche_bordures(data) :
@@ -102,4 +119,4 @@ def recherche_bordures(data) :
                     
 
 recherche_bordures(intentions)
-print(intentions)
+#print(intentions)
