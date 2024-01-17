@@ -47,15 +47,33 @@ def constante(router):
     config = "!\n!\n!\n!\n!\n!\n!\n!\n\n!\n! Last configuration change at 14:16:26 UTC Wed Dec 20 2023\n!\nversion 15.2\nservice timestamps debug datetime msec\nservice timestamps log datetime msec\n!\nhostname " + router + "\n!\nboot-start-marker\nboot-end-marker\n!\n!\n!\nno aaa new-model\nno ip icmp rate-limit unreachable\nip cef\n!\n!\n!\n!\n!\n!\nno ip domain lookup\nipv6 unicast-routing\nipv6 cef\n!\n!\nmultilink bundle-name authenticated\n!\n!\n!\n!\n!\n!\n!\n!\n!\nip tcp synwait-time 5\n! \n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!"
 
     # Obtenir le chemin complet du fichier dans le dossier config_files
-    dossier_config = os.path.join(os.path.dirname(__file__), "config_files")
-    filename = os.path.join(dossier_config, router + ".cfg")
+    filename = os.path.join(os.path.dirname(__file__), "config_files", router + ".cfg")
 
     # Écrire la configuration dans le fichier spécifié
     with open(filename, 'w') as fichier:
         fichier.write(config)
+constante("R1")
+def supprimer_fichiers(dossier):
+    repertoire_script = os.path.dirname(__file__)
 
-# Exemple d'utilisation
-#constante("R1")
+    # Construire le chemin complet pour le dossier "config_files"
+    dossier_a_purger = os.path.join(repertoire_script, "config_files")
+
+    # Liste tous les fichiers dans le dossier
+    fichiers_dans_dossier = os.listdir(dossier_a_purger)
+
+    # Construit le chemin complet pour chaque fichier et le supprime
+    for fichier in fichiers_dans_dossier:
+        chemin_fichier = os.path.join(dossier_a_purger, fichier)
+        try:
+            if os.path.isfile(chemin_fichier):
+                os.remove(chemin_fichier)
+                print(f"Supprimé : {chemin_fichier}")
+            else:
+                print(f"Ignoré (non-fichier) : {chemin_fichier}")
+        except Exception as e:
+            print(f"Erreur lors de la suppression de {chemin_fichier} : {e}")
+
 
 
 
@@ -143,9 +161,32 @@ def recherche_bordures(data) :
         data["AS"][AS]["routeurs"] = new_routeurs
 
                 
+def conf_interface(routeur,interface,IGP,adresse):
+    texte = f"""\ninterface {interface}
+ no ip address
+ ipv6 address {adresse}
+ ipv6 enable
+ """
+    if IGP == "RIP":
+        texte += "ipv6 rip connected enable\n!"
+        
+    if IGP =="OSPF":
+        texte+=f"ipv6 ospf {routeur[1:]} area 0\n!"
 
+    filename = os.path.join(os.path.dirname(__file__), "config_files", routeur + ".cfg")
+
+    # Écrire la configuration dans le fichier spécifié
+    with open(filename, 'a') as fichier:
+        fichier.write(texte)
+
+
+    
+    
+    
 
 def logic(data) :
+    
+    supprimer_fichiers("config_files")
 
     recherche_bordures(intentions)
     adressage(intentions)
@@ -156,8 +197,7 @@ def logic(data) :
         IGP = data["AS"][AS]["IGP"]
 
         for routeur in data["AS"][AS]["routeurs"] :
-
-            #constante(router)
+            constante(routeur["nom"])
 
             for lien in data["AS"][AS]["liens"] :
                 for routeur_in_lien in lien :
@@ -166,6 +206,7 @@ def logic(data) :
                         if routeur_in_lien["nom"] == routeur["nom"] :
                             interface = list(routeur_in_lien.keys())[1]
                             print(interface)
+                            conf_interface(routeur["nom"],interface,IGP,routeur_in_lien[interface])
                             #inserer fonction de config interface
 
 
