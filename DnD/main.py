@@ -28,6 +28,7 @@ def lister_routers(repertoire_projet):
                     routers_list[hostname_match.group(1)] = config_file
                 else : 
                     print(f"Hostname non trouvé dans le fichier de config :{router}")
+  
     
     return routers_list
         
@@ -170,7 +171,7 @@ def conf_interface(routeur,interface,IGP,adresse):
         texte += "\n ipv6 rip connected enable\n!"
         
     if IGP =="OSPF":
-        texte+=f"ipv6 ospf {routeur[1:]} area 0\n!"
+        texte+=f"\n ipv6 ospf {routeur[1:]} area 0\n!"
 
     filename = os.path.join(os.path.dirname(__file__), "config_files", routeur + ".cfg")
 
@@ -232,7 +233,7 @@ ipv6 router rip connected
 """
     else :
         texte = f"""
-ipv6 router ospf{nom[1:]}
+ipv6 router ospf {nom[1:]}
  router-id {nom[1:]}.{nom[1:]}.{nom[1:]}.{nom[1:]}
  passive-interface Loopback0
 """
@@ -343,9 +344,10 @@ def drag_and_drop(dossiers) :
             
 
 
-repertoire_projet = 'C:\\Users\\Gauthier\\Desktop\\TC\\TC3\\PROJETS\\projet_GNS3\\GNS3_project1'  
+repertoire_projet = "C:\\Users\\baptr\\GNS3\\projects\\GNS3DnDnew"  
 
 dossiers = lister_routers(repertoire_projet)
+print(dossiers)
 
 
 chemin_data = os.path.join(os.path.dirname(__file__),'..','data','data.json')
