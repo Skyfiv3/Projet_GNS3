@@ -169,12 +169,13 @@ def recherche_bordures(data) :
                 
 def conf_interface(routeur,interface,IGP,adresse):
     texte = f"""\ninterface {interface}
- no ip address
- ipv6 address {adresse}
- ipv6 enable
- """
+ no ip address"""
+    if interface!="Loopback0":
+        texte+="""\n negotiation auto"""
+    texte+=f"""\n ipv6 address {adresse}
+ ipv6 enable"""
     if IGP == "RIP":
-        texte += "ipv6 rip connected enable\n!"
+        texte += "\n ipv6 rip connected enable\n!"
         
     if IGP =="OSPF":
         texte+=f"ipv6 ospf {routeur[1:]} area 0\n!"
@@ -190,40 +191,29 @@ def conf_bgp(nom_routeur,AS,loopbacks_voisin,plages,adresses_bordures):
     texte_routeur = f"""\nrouter bgp {AS}
  bgp router-id {nom_routeur[1:]}.{nom_routeur[1:]}.{nom_routeur[1:]}.{nom_routeur[1:]}
  bgp log-neighbor-changes
- no bgp default ipv4-unicast
- """
-    texte_family=f"""/naddress-family ipv6
-!
-"""
+ no bgp default ipv4-unicast"""
+    texte_family=f"""\naddress-family ipv6"""
     for plage in plages :
-        texte_family+=f"""/n  network {plage}
-        """
+        texte_family+=f"""\n  network {plage}"""
     
     
         
     for adresse in loopbacks_voisin:
         texte_routeur+=f"""\n neighbor {adresse} remote-as {AS}
- neighbor {adresse} update-source Loopback0 
- !
- """
-        texte_family+=f"""\n  neighbor {adresse} activate
-        """
+ neighbor {adresse} update-source Loopback0"""
+        texte_family+=f"""\n  neighbor {adresse} activate"""
 
 
     for adresse,num_AS in adresses_bordures:
-        texte_routeur+=f"""\n neighbor {adresse} remote-as {num_AS}
- !
-        """
-        texte_routeur+=f"""\n !
+        texte_routeur+=f"""\n neighbor {adresse} remote-as {num_AS}"""
+        texte_family+=f"""\n  neighbor {adresse} activate"""
+    texte_routeur+=f"""\n !
  address-family ipv4
  exit-address-family
- !
- """   
-        texte_family+=f"""\n  neighbor {adresse} activate
-        """
+ !"""   
         
-    texte_family+="""\n exit-address-family
-"""
+        
+    texte_family+="""\n exit-address-family"""
 
     filename = os.path.join(os.path.dirname(__file__), "config_files", nom_routeur + ".cfg")
 
@@ -292,7 +282,7 @@ def logic(data) :
                     loopback_voisins.append(voisin["Loopback0"])
            
             
-            conf_bgp(routeur["nom"],loopback_voisins,plages_addresses,addresses_bordures)
+            conf_bgp(routeur["nom"],AS[2:],loopback_voisins,plages_addresses,addresses_bordures)
 
                             
 
