@@ -3,6 +3,8 @@ import re
 import json
 import ipaddress
 import shutil
+from gns3fy import Gns3Connector, Project
+from telnetlib import Telnet
 
 def lister_routers(repertoire_projet):
 
@@ -184,16 +186,16 @@ def conf_bgp(nom_routeur,AS,loopbacks_voisin,plages,adresses_bordures):
  bgp router-id {nom_routeur[1:]}.{nom_routeur[1:]}.{nom_routeur[1:]}.{nom_routeur[1:]}
  bgp log-neighbor-changes
  no bgp default ipv4-unicast"""
-    texte_family=f"""\n address-family ipv6"""
+    texte_family=f"""\naddress-family ipv6"""
     for plage in plages :
         texte_family+=f"""\n  network {plage}"""
     
     
         
     for adresse in loopbacks_voisin:
-        texte_routeur+=f"""\n neighbor {adresse[:-4]} remote-as {AS}
- neighbor {adresse[:-4]} update-source Loopback0"""
-        texte_family+=f"""\n  neighbor {adresse[:-4]} activate"""
+        texte_routeur+=f"""\n neighbor {adresse} remote-as {AS}
+ neighbor {adresse} update-source Loopback0"""
+        texte_family+=f"""\n  neighbor {adresse} activate"""
 
 
     for adresse,num_AS in adresses_bordures:
@@ -205,8 +207,7 @@ def conf_bgp(nom_routeur,AS,loopbacks_voisin,plages,adresses_bordures):
  !"""   
         
         
-    texte_family+="""\n exit-address-family
-"""
+    texte_family+="""\n exit-address-family"""
 
     filename = os.path.join(os.path.dirname(__file__), "config_files", nom_routeur + ".cfg")
 
@@ -227,7 +228,7 @@ no ip http secure-server
     if IGP == "RIP" :
 
         texte += """
-ipv6 router rip connected
+ipv6 router connected
  redistribute connected
 """
     else :
@@ -335,26 +336,47 @@ def logic(data) :
 
             conf_igp(routeur["nom"],IGP,interfaces_bordures)
 
-def drag_and_drop(dossiers) :
+def drag_and_drop(repertoire_projet) :
+    dossiers = lister_routers(repertoire_projet)
     for routeur,chemin in dossiers.items() :
         shutil.copy(os.path.join(os.path.dirname(__file__), "config_files",routeur+".cfg"),chemin)
 
+def start_teltet(projet_name) :
+    serveur = Gns3Connector("http://localhost:3080")
+    projet = Project(name="GNS3_project1", connector=serveur)
+    projet.get()
+    projet.open()
 
-            
+    noeuds = {}
+    for noeud in projet.nodes :
+        noeuds[noeud.name] = Telnet(noeud.console_host,str(noeud.console))
 
+    return noeuds
+
+def commande(cmd) :
+    if type(cmd) == str :
+        noeuds["R1"].write(bytes(cmd+"\r",encoding="ascii"))
+
+def load_data() :
+    chemin_data = os.path.join(os.path.dirname(__file__),'..','data','data.json')
+
+    with open(chemin_data,"r") as data :
+        intentions = json.load(data)          
+
+    return intentions
 
 repertoire_projet = 'C:\\Users\\Gauthier\\Desktop\\TC\\TC3\\PROJETS\\projet_GNS3\\GNS3_project1'  
 
-dossiers = lister_routers(repertoire_projet)
 
-
-chemin_data = os.path.join(os.path.dirname(__file__),'..','data','data.json')
-
-with open(chemin_data,"r") as data :
-    intentions = json.load(data)                    
+          
+intentions = load_data()
 
 logic(intentions)
 
-drag_and_drop(dossiers)
+#drag_and_drop(repertoire_projet)
+
+noeuds = start_teltet("GNS3_project1")
+
+
 
 
