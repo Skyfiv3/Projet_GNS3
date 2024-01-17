@@ -224,7 +224,7 @@ def logic(data) :
                         for AS_bordure in data["AS"] :
                             for routeur_bordure in data["AS"][AS_bordure]["routeurs"] :
                                 if routeur_bordure["nom"] == bordures[j][0] :
-                                    voisin.append(AS_bordure)
+                                    voisin.append(AS_bordure[2:])
                         
                         addresses_bordures.append(voisin)
 
