@@ -32,8 +32,8 @@ def lister_routers(repertoire_projet):
         
     
 
-repertoire_projet = 'C:\\Users\\Gauthier\\Desktop\\TC\\TC3\\PROJETS\\projet_GNS3\\GNS3_project1'  
-
+repertoire_projet = 'C:\\Users\\baptr\\GNS3\\projects\\GNS3_projectDnD'  
+print(lister_routers(repertoire_projet))
 dossiers = lister_routers(repertoire_projet)
 
 chemin_data = os.path.join(os.path.dirname(__file__),'..','data','data.json')
@@ -192,16 +192,16 @@ def conf_bgp(nom_routeur,AS,loopbacks_voisin,plages,adresses_bordures):
  bgp router-id {nom_routeur[1:]}.{nom_routeur[1:]}.{nom_routeur[1:]}.{nom_routeur[1:]}
  bgp log-neighbor-changes
  no bgp default ipv4-unicast"""
-    texte_family=f"""\naddress-family ipv6"""
+    texte_family=f"""\n address-family ipv6"""
     for plage in plages :
         texte_family+=f"""\n  network {plage}"""
     
     
         
     for adresse in loopbacks_voisin:
-        texte_routeur+=f"""\n neighbor {adresse} remote-as {AS}
- neighbor {adresse} update-source Loopback0"""
-        texte_family+=f"""\n  neighbor {adresse} activate"""
+        texte_routeur+=f"""\n neighbor {adresse[:-4]} remote-as {AS}
+ neighbor {adresse[:-4]} update-source Loopback0"""
+        texte_family+=f"""\n  neighbor {adresse[:-4]} activate"""
 
 
     for adresse,num_AS in adresses_bordures:
@@ -213,7 +213,8 @@ def conf_bgp(nom_routeur,AS,loopbacks_voisin,plages,adresses_bordures):
  !"""   
         
         
-    texte_family+="""\n exit-address-family"""
+    texte_family+="""\n exit-address-family
+"""
 
     filename = os.path.join(os.path.dirname(__file__), "config_files", nom_routeur + ".cfg")
 
@@ -234,7 +235,7 @@ no ip http secure-server
     if IGP == "RIP" :
 
         texte += """
-ipv6 router connected
+ipv6 router rip connected
  redistribute connected
 """
     else :
