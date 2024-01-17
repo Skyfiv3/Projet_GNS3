@@ -182,7 +182,51 @@ def conf_interface(routeur,interface,IGP,adresse):
         fichier.write(texte)
 
 
+def conf_bgp(nom_routeur,AS,loopbacks_voisin,plages,adresses_bordures):
+    texte_routeur = f"""\nrouter bgp {AS}
+ bgp router-id {nom_routeur[1:]}.{nom_routeur[1:]}.{nom_routeur[1:]}.{nom_routeur[1:]}
+ bgp log-neighbor-changes
+ no bgp default ipv4-unicast
+ """
+    texte_family=f"""/naddress-family ipv6
+!
+"""
+    for plage in plages :
+        texte_family+=f"""/n  network {plage}
+        """
     
+    
+        
+    for adresse in loopbacks_voisin:
+        texte_routeur+=f"""\n neighbor {adresse} remote-as {AS}
+ neighbor {adresse} update-source Loopback0 
+ !
+ """
+        texte_family+=f"""\n  neighbor {adresse} activate
+        """
+
+
+    for adresse,num_AS in adresses_bordures:
+        texte_routeur+=f"""\n neighbor {adresse} remote-as {num_AS}
+ !
+        """
+        texte_routeur+=f"""\n !
+ address-family ipv4
+ exit-address-family
+ !
+ """   
+        texte_family+=f"""\n  neighbor {adresse} activate
+        """
+        
+    texte_family+="""\n exit-address-family
+"""
+
+    filename = os.path.join(os.path.dirname(__file__), "config_files", nom_routeur + ".cfg")
+
+    # Écrire la configuration dans le fichier spécifié
+    with open(filename, 'a') as fichier:
+        fichier.write(texte_routeur)
+        fichier.write(texte_family)
     
     
 
@@ -233,8 +277,9 @@ def logic(data) :
             for voisin in data["AS"][AS]["routeurs"] :
                 if voisin["nom"] in voisins :
                     loopback_voisins.append(voisin["Loopback0"])
-
-            #conf_bgp("coucou ",routeur["nom"],loopback_voisins,plages_addresses,addresses_bordures)
+           
+            
+            conf_bgp(routeur["nom"],loopback_voisins,plages_addresses,addresses_bordures)
 
                             
 
