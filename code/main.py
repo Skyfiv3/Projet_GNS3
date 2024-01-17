@@ -3,9 +3,35 @@ import re
 import json
 import ipaddress
 import shutil
-#from gns3fy import Gns3Connector, Project
+from gns3fy import Gns3Connector, Project
 from telnetlib import Telnet
 from time import sleep
+
+def load_data() :
+    chemin_data = os.path.join(os.path.dirname(__file__),'..','data','data.json')
+
+    with open(chemin_data,"r") as data :
+        intentions = json.load(data)          
+
+    return intentions
+
+
+def supprimer_fichiers(dossier):
+    repertoire_script = os.path.dirname(__file__)
+
+    # Construire le chemin complet pour le dossier "config_files"
+    dossier_a_purger = os.path.join(repertoire_script, "config_files")
+
+    # Liste tous les fichiers dans le dossier
+    fichiers_dans_dossier = os.listdir(dossier_a_purger)
+
+    # Construit le chemin complet pour chaque fichier et le supprime
+    for fichier in fichiers_dans_dossier:
+        chemin_fichier = os.path.join(dossier_a_purger, fichier)
+
+        if os.path.isfile(chemin_fichier):
+            os.remove(chemin_fichier)
+
 
 def lister_routers(repertoire_projet) :
     ##
@@ -45,44 +71,6 @@ def lister_routers(repertoire_projet) :
     
     return routers_list
         
-   
-
-
-
-
-
-def constante(router):
-    config = "!\n!\n!\n!\n!\n!\n!\n!\n\n!\n! Last configuration change at 14:16:26 UTC Wed Dec 20 2023\n!\nversion 15.2\nservice timestamps debug datetime msec\nservice timestamps log datetime msec\n!\nhostname " + router + "\n!\nboot-start-marker\nboot-end-marker\n!\n!\n!\nno aaa new-model\nno ip icmp rate-limit unreachable\nip cef\n!\n!\n!\n!\n!\n!\nno ip domain lookup\nipv6 unicast-routing\nipv6 cef\n!\n!\nmultilink bundle-name authenticated\n!\n!\n!\n!\n!\n!\n!\n!\n!\nip tcp synwait-time 5\n! \n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!"
-
-    # Obtenir le chemin complet du fichier dans le dossier config_files
-    filename = os.path.join(os.path.dirname(__file__), "config_files", router + ".cfg")
-
-    # Écrire la configuration dans le fichier spécifié
-    with open(filename, 'w') as fichier:
-        fichier.write(config)
-constante("R1")
-
-def supprimer_fichiers(dossier):
-    repertoire_script = os.path.dirname(__file__)
-
-    # Construire le chemin complet pour le dossier "config_files"
-    dossier_a_purger = os.path.join(repertoire_script, "config_files")
-
-    # Liste tous les fichiers dans le dossier
-    fichiers_dans_dossier = os.listdir(dossier_a_purger)
-
-    # Construit le chemin complet pour chaque fichier et le supprime
-    for fichier in fichiers_dans_dossier:
-        chemin_fichier = os.path.join(dossier_a_purger, fichier)
-
-        if os.path.isfile(chemin_fichier):
-            os.remove(chemin_fichier)
-
-
-
-
-
-
 
 def adressage(data):
     
@@ -147,6 +135,7 @@ def adressage(data):
         for i in range(nb_routeurs) :
             data["AS"][AS]["routeurs"][i]["Loopback0"] = adresses_ipv6[i]
 
+
 def recherche_bordures(data) :
     for eGP in data["liens_eGP"] :
         for eGP_routeur in eGP :
@@ -172,7 +161,22 @@ def recherche_bordures(data) :
         
         data["AS"][AS]["routeurs"] = new_routeurs
 
-                
+
+
+
+
+
+def constante(router):
+    config = "!\n!\n!\n!\n!\n!\n!\n!\n\n!\n! Last configuration change at 14:16:26 UTC Wed Dec 20 2023\n!\nversion 15.2\nservice timestamps debug datetime msec\nservice timestamps log datetime msec\n!\nhostname " + router + "\n!\nboot-start-marker\nboot-end-marker\n!\n!\n!\nno aaa new-model\nno ip icmp rate-limit unreachable\nip cef\n!\n!\n!\n!\n!\n!\nno ip domain lookup\nipv6 unicast-routing\nipv6 cef\n!\n!\nmultilink bundle-name authenticated\n!\n!\n!\n!\n!\n!\n!\n!\n!\nip tcp synwait-time 5\n! \n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!"
+
+    # Obtenir le chemin complet du fichier dans le dossier config_files
+    filename = os.path.join(os.path.dirname(__file__), "config_files", router + ".cfg")
+
+    # Écrire la configuration dans le fichier spécifié
+    with open(filename, 'w') as fichier:
+        fichier.write(config)
+
+        
 def conf_interface(routeur,interface,IGP,adresse):
     texte = f"""\ninterface {interface}
  no ip address"""
@@ -285,6 +289,9 @@ end
 
 
 
+
+
+
 def logic(data) :
 
     supprimer_fichiers("config_files")
@@ -349,6 +356,10 @@ def logic(data) :
 
             conf_igp(routeur["nom"],IGP,interfaces_bordures)
 
+
+
+
+
 def drag_and_drop(repertoire_projet) :
     dossiers = lister_routers(repertoire_projet)
     for routeur,chemin in dossiers.items() :
@@ -371,13 +382,8 @@ def commande(cmd,noeuds,routeur) :
         noeuds[routeur].write(bytes(cmd+"\r",encoding="ascii"))
 
 
-def load_data() :
-    chemin_data = os.path.join(os.path.dirname(__file__),'..','data','data.json')
 
-    with open(chemin_data,"r") as data :
-        intentions = json.load(data)          
 
-    return intentions
 
 repertoire_projet = "C:\\Users\\baptr\\GNS3\\projects\\GNS3DnDnew"
 
