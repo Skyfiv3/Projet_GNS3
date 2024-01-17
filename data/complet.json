@@ -34,5 +34,6 @@
         }, 
         
         
-        "AS2": {"IGP": "OSPF", "numero_AS": 2, "plage_IP": {"interfaces_physique": "2002::/64", "interfaces_loopback": "1002::/64"}, "routeurs": [{"nom": "R4", "etat": "bordure"}, {"nom": "R5", "etat": "interne"}, {"nom": "R6", "etat": "interne"}], "liens": [[{"nom": "R4", "GigabitEthernet2/0": "2002:0:0:0::1/64", "Loopback0": "1002:0:0:0::1/64"}, {"nom": "R5", "GigabitEthernet2/0": "2002:0:0:0::2/64", "Loopback0": "1002:0:0:0::2/64"}, "2002:0:0:0::/64", "1002:0:0:0::/64"], [{"nom": "R5", "GigabitEthernet1/0": "2002:0:0:1::1/64", "Loopback0": "1002:0:0:1::1/64"}, {"nom": "R6", "GigabitEthernet1/0": "2002:0:0:1::2/64", "Loopback0": "1002:0:0:1::2/64"}, 
-"2002:0:0:1::/64", "1002:0:0:1::/64"]]}}, "liens_eGP": [[["R3", "G3/0", "2003:1::1"], ["R4", "G3/0", "2003:1::2"]]]}
+    "AS2": {"IGP": "OSPF", "numero_AS": 2, "plage_IP": {"interfaces_physique": "2002::/64", "interfaces_loopback": "1002::/64"}, "routeurs": [{"nom": "R4", "etat": "bordure"}, {"nom": "R5", "etat": "interne"}, {"nom": "R6", "etat": "interne"}], "liens": [[{"nom": "R4", "GigabitEthernet2/0": "2002:0:0:0::1/64", "Loopback0": "1002:0:0:0::1/64"}, {"nom": "R5", "GigabitEthernet2/0": "2002:0:0:0::2/64", "Loopback0": "1002:0:0:0::2/64"}, "2002:0:0:0::/64", "1002:0:0:0::/64"], [{"nom": "R5", "GigabitEthernet1/0": "2002:0:0:1::1/64", "Loopback0": "1002:0:0:1::1/64"}, {"nom": "R6", "GigabitEthernet1/0": "2002:0:0:1::2/64", "Loopback0": "1002:0:0:1::2/64"}, 
+"2002:0:0:1::/64", "1002:0:0:1::/64"]]}}, 
+    "liens_eGP": [[["R3", "G3/0", "2003:1::1"], ["R4", "G3/0", "2003:1::2"]]]}

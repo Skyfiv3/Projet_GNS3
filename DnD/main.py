@@ -113,10 +113,11 @@ def adressage(data):
 
         plage = data["AS"][AS]["plage_IP"]["interfaces_loopback"]
 
+
         network = ipaddress.IPv6Network(plage, strict=False)
 
         # Générer une liste d'adresses IPv6
-        adresses_ipv6 = [str(network.network_address + i+1) + '/64' for i in range(nb_routeurs)]
+        adresses_ipv6 = [str(network.network_address + i+1) + '/128' for i in range(nb_routeurs)]
 
         for i in range(nb_routeurs) :
             data["AS"][AS]["routeurs"][i]["Loopback0"] = adresses_ipv6[i]
@@ -147,26 +148,57 @@ def recherche_bordures(data) :
 
 def logic(data) :
 
+    supprimer_fichier("config_files")
+
+    #Mise en place du json complet
     recherche_bordures(intentions)
     adressage(intentions)
 
 
     for AS in data["AS"] :
 
+        plages_addresses = []
+        for lien in data["AS"][AS]["liens"] :
+            plages_addresses.append(lien[2])
+
+
         IGP = data["AS"][AS]["IGP"]
 
         for routeur in data["AS"][AS]["routeurs"] :
 
-            #constante(router)
+            constante(routeur["nom"])
+            voisins = []
+            addresses_bordures = []
+
+            for bordures in data["liens_eGP"] :
+                for i in range(2) :
+                    if bordures[i][0] == routeur["nom"] :
+                        conf_interface(routeur["nom"],bordures[i][1],IGP,bordures[i][2])
+                        addresses_bordures.append(bordures[(i+1)%2][2])
+
 
             for lien in data["AS"][AS]["liens"] :
                 for routeur_in_lien in lien :
                     if type(routeur_in_lien) ==  dict :
                     
                         if routeur_in_lien["nom"] == routeur["nom"] :
+
                             interface = list(routeur_in_lien.keys())[1]
-                            print(interface)
-                            #inserer fonction de config interface
+                            conf_interface(routeur["nom"],interface,IGP,routeur_in_lien[interface])
+                        else : 
+                            voisins.append(routeur_in_lien["nom"])
+            
+            loopback_voisins = []
+
+            for voisin in data["AS"][AS]["routeurs"] :
+                if voisin["nom"] in voisins :
+                    loopback_voisins.append(voisin["Loopback0"])
+
+            #conf_bgp("coucou ",routeur["nom"],loopback_voisins,plages_addresses,addresses_bordures)
+
+                            
+
+
 
 
 
