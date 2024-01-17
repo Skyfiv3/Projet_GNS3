@@ -5,28 +5,39 @@ import ipaddress
 import shutil
 from gns3fy import Gns3Connector, Project
 from telnetlib import Telnet
+from time import sleep
 
-def lister_routers(repertoire_projet):
+def lister_routers(repertoire_projet) :
+    ##
+    #Trouve les fichiers configs de chaques routeurs dans le repertoire_projet
+    ##
 
     repertoire_courant =  repertoire_projet + "\\project-files\\dynamips"    
 
     routers_list = {}
 
     if os.path.exists(repertoire_courant):
+        #Création d'une liste avec tous les dossiers des routeurs
         dossiers = [repertoire_courant+"\\"+nom for nom in os.listdir(repertoire_courant) if os.path.isdir(os.path.join(repertoire_courant, nom))]
+
         for router in dossiers :
+            #Création du chemin vers le .cfg
             chemin = router + "\\configs"
             config_file=""
             for nom_fichier in os.listdir(chemin) :
+
+                #Recherche du fichier de config au démarrage
                 if nom_fichier.endswith(".cfg") and 'startup' in nom_fichier:
                     config_file = chemin + "\\" + nom_fichier
 
-            with open(config_file, 'r') as config :
+            #Lecture du .cfg pour determiner à quel router il appartient
+            with open(config_file, 'r') as config : 
                 config_content = config.read()
                 hostname_pattern = r'hostname\s+(\w+)'
                 hostname_match = re.search(hostname_pattern,config_content)
 
                 if hostname_match :
+                    #Création du dictionnaire avec comme clé le nom du routeur et en valeur le chemin absolu vers le .cfg
                     routers_list[hostname_match.group(1)] = config_file
                 else : 
                     print(f"Hostname non trouvé dans le fichier de config :{router}")
@@ -354,9 +365,9 @@ def start_teltet(projet_name) :
 
     return noeuds
 
-def commande(cmd) :
-    if type(cmd) == str :
-        noeuds["R1"].write(bytes(cmd+"\r",encoding="ascii"))
+def commande(cmd,noeuds,routeur) :
+    if type(cmd) == str and type(routeur) ==  str :
+        noeuds[routeur].write(bytes(cmd+"\r",encoding="ascii"))
 
 def load_data() :
     chemin_data = os.path.join(os.path.dirname(__file__),'..','data','data.json')
@@ -367,8 +378,6 @@ def load_data() :
     return intentions
 
 repertoire_projet = 'C:\\Users\\Gauthier\\Desktop\\TC\\TC3\\PROJETS\\projet_GNS3\\GNS3_project1'  
-
-
           
 intentions = load_data()
 
