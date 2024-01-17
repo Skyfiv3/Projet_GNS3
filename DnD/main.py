@@ -142,6 +142,9 @@ def adressage(data):
             data["AS"][AS]["routeurs"][i]["Loopback0"] = adresses_ipv6[i]
 
 def recherche_bordures(data) :
+    for eGP in data["liens_eGP"] :
+        for eGP_routeur in eGP :
+            eGP_routeur[1] = "GigabitEthernet"+eGP_routeur[1][1:]
 
     for AS in data["AS"] :
 
@@ -153,6 +156,7 @@ def recherche_bordures(data) :
 
             for eGP in data["liens_eGP"] :
                 for eGP_routeur in eGP :
+                    
                     if router == eGP_routeur[0] :
                         new_routeurs.append({"nom":router,"etat":"bordure"})
                         bordure = True
@@ -258,7 +262,16 @@ def logic(data) :
                 for i in range(2) :
                     if bordures[i][0] == routeur["nom"] :
                         conf_interface(routeur["nom"],bordures[i][1],IGP,bordures[i][2])
-                        addresses_bordures.append(bordures[(i+1)%2][2])
+
+                        j = (i+1)%2
+                        voisin = [bordures[j][2]]
+                        for AS_bordure in data["AS"] :
+                            for routeur_bordure in data["AS"][AS_bordure]["routeurs"] :
+                                if routeur_bordure["nom"] == bordures[j][0] :
+                                    voisin.append(AS_bordure[2:])
+                        
+                        addresses_bordures.append(voisin)
+
 
 
             for lien in data["AS"][AS]["liens"] :
