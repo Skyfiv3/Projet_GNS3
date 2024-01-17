@@ -2,6 +2,7 @@ import os
 import re
 import json
 import ipaddress
+import shutil
 
 def lister_routers(repertoire_projet):
 
@@ -30,16 +31,9 @@ def lister_routers(repertoire_projet):
     
     return routers_list
         
-    
+   
 
-repertoire_projet = 'C:\\Users\\Gauthier\\Desktop\\TC\\TC3\\PROJETS\\projet_GNS3\\GNS3_project1'  
 
-dossiers = lister_routers(repertoire_projet)
-
-chemin_data = os.path.join(os.path.dirname(__file__),'..','data','data.json')
-
-with open(chemin_data,"r") as data :
-    intentions = json.load(data)
 
 
 
@@ -66,14 +60,12 @@ def supprimer_fichiers(dossier):
     # Construit le chemin complet pour chaque fichier et le supprime
     for fichier in fichiers_dans_dossier:
         chemin_fichier = os.path.join(dossier_a_purger, fichier)
-        try:
-            if os.path.isfile(chemin_fichier):
-                os.remove(chemin_fichier)
-                print(f"Supprimé : {chemin_fichier}")
-            else:
-                print(f"Ignoré (non-fichier) : {chemin_fichier}")
-        except Exception as e:
-            print(f"Erreur lors de la suppression de {chemin_fichier} : {e}")
+
+        if os.path.isfile(chemin_fichier):
+            os.remove(chemin_fichier)
+
+
+
 
 
 
@@ -312,6 +304,27 @@ def logic(data) :
             conf_bgp(routeur["nom"],AS[2:],loopback_voisins,plages_addresses,addresses_bordures)
 
             conf_igp(routeur["nom"],IGP,interfaces_bordures)
-                            
+
+def drag_and_drop(dossiers) :
+    for routeur,chemin in dossiers.items() :
+        shutil.copy(os.path.join(os.path.dirname(__file__), "config_files",routeur+".cfg"),chemin)
+
+
+            
+
+
+repertoire_projet = 'C:\\Users\\Gauthier\\Desktop\\TC\\TC3\\PROJETS\\projet_GNS3\\GNS3_project1'  
+
+dossiers = lister_routers(repertoire_projet)
+
+
+chemin_data = os.path.join(os.path.dirname(__file__),'..','data','data.json')
+
+with open(chemin_data,"r") as data :
+    intentions = json.load(data)                    
 
 logic(intentions)
+
+drag_and_drop(dossiers)
+
+
