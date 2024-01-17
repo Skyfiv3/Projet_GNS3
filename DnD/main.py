@@ -257,11 +257,15 @@ def logic(data) :
             constante(routeur["nom"])
             voisins = []
             addresses_bordures = []
+            interfaces_bordures = []
+            conf_interface(routeur["nom"],"Loopback0",IGP,routeur["Loopback0"])
 
             for bordures in data["liens_eGP"] :
                 for i in range(2) :
                     if bordures[i][0] == routeur["nom"] :
                         conf_interface(routeur["nom"],bordures[i][1],IGP,bordures[i][2])
+
+                        interfaces_bordures.append(bordures[i][1])    
 
                         j = (i+1)%2
                         voisin = [bordures[j][2]]
@@ -292,8 +296,9 @@ def logic(data) :
                     loopback_voisins.append(voisin["Loopback0"])
            
             
-            conf_bgp(routeur["nom"],loopback_voisins,plages_addresses,addresses_bordures)
+            conf_bgp(routeur["nom"],AS[2:],loopback_voisins,plages_addresses,addresses_bordures)
 
+            print(routeur["nom"],IGP,interfaces_bordures)
                             
 
 
