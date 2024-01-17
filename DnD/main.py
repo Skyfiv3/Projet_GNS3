@@ -223,6 +223,31 @@ def conf_bgp(nom_routeur,AS,loopbacks_voisin,plages,adresses_bordures):
         fichier.write(texte_family)
     
     
+def conf_igp(nom,IGP,bordures) :
+    if IGP == "RIP" :
+
+        texte = """
+ipv6 router connected
+ redistribute connected
+!
+    """
+    else :
+        texte = f"""
+ipv6 router ospf{nom[1:]}
+ router-id {nom[1:]}.{nom[1:]}.{nom[1:]}.{nom[1:]}
+ passive-interface Loopback0
+"""
+        
+        for bordure in bordures :
+            texte +=f""" passive-interface {bordure}
+"""
+    filename = os.path.join(os.path.dirname(__file__), "config_files", nom + ".cfg")
+
+    # Écrire la configuration dans le fichier spécifié
+    with open(filename, 'a') as fichier:
+        fichier.write(texte)
+
+
 
 def logic(data) :
 
@@ -266,8 +291,6 @@ def logic(data) :
                         
                         addresses_bordures.append(voisin)
 
-
-
             for lien in data["AS"][AS]["liens"] :
                 for routeur_in_lien in lien :
                     if type(routeur_in_lien) ==  dict :
@@ -288,11 +311,7 @@ def logic(data) :
             
             conf_bgp(routeur["nom"],AS[2:],loopback_voisins,plages_addresses,addresses_bordures)
 
-            print(routeur["nom"],IGP,interfaces_bordures)
+            conf_igp(routeur["nom"],IGP,interfaces_bordures)
                             
-
-
-
-
 
 logic(intentions)
