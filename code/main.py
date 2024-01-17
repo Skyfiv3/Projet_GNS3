@@ -3,7 +3,7 @@ import re
 import json
 import ipaddress
 import shutil
-from gns3fy import Gns3Connector, Project
+#from gns3fy import Gns3Connector, Project
 from telnetlib import Telnet
 
 def lister_routers(repertoire_projet):
@@ -102,7 +102,7 @@ def adressage(data):
         # Créer une plage d'adresses pour chaque lien
         for i in range(nombre_liens):
             adresse_lien = elements.copy()  # Créer une copie pour chaque itération
-            adresse_lien[-1] += i  # Incrémenter le dernier élément pour chaque lien
+            adresse_lien[-1] += i+1  # Incrémenter le dernier élément pour chaque lien
             adresse_lien_str = ':'.join([hex(e)[2:] for e in adresse_lien]) + '::/64'
             
 
@@ -194,14 +194,14 @@ def conf_bgp(nom_routeur,AS,loopbacks_voisin,plages,adresses_bordures):
     
         
     for adresse in loopbacks_voisin:
-        texte_routeur+=f"""\n neighbor {adresse} remote-as {AS}
- neighbor {adresse} update-source Loopback0"""
-        texte_family+=f"""\n  neighbor {adresse} activate"""
+        texte_routeur+=f"""\n neighbor {adresse[:-4]} remote-as {AS}
+ neighbor {adresse[:-4]} update-source Loopback0"""
+        texte_family+=f"""\n  neighbor {adresse[:-4]} activate"""
 
 
     for adresse,num_AS in adresses_bordures:
-        texte_routeur+=f"""\n neighbor {adresse} remote-as {num_AS}"""
-        texte_family+=f"""\n  neighbor {adresse} activate"""
+        texte_routeur+=f"""\n neighbor {adresse[:-3]} remote-as {num_AS}"""
+        texte_family+=f"""\n  neighbor {adresse[:-3]} activate"""
     texte_routeur+=f"""\n !
  address-family ipv4
  exit-address-family
@@ -219,7 +219,8 @@ def conf_bgp(nom_routeur,AS,loopbacks_voisin,plages,adresses_bordures):
     
     
 def conf_igp(nom,IGP,bordures) :
-    texte="""!
+    texte="""
+!
 ip forward-protocol nd
 !
 !
@@ -233,7 +234,7 @@ ipv6 router connected
  redistribute connected
 """
     else :
-        texte = f"""
+        texte += f"""
 ipv6 router ospf {nom[1:]}
  router-id {nom[1:]}.{nom[1:]}.{nom[1:]}.{nom[1:]}
  passive-interface Loopback0
@@ -341,7 +342,7 @@ def drag_and_drop(repertoire_projet) :
     dossiers = lister_routers(repertoire_projet)
     for routeur,chemin in dossiers.items() :
         shutil.copy(os.path.join(os.path.dirname(__file__), "config_files",routeur+".cfg"),chemin)
-
+'''
 def start_teltet(projet_name) :
     serveur = Gns3Connector("http://localhost:3080")
     projet = Project(name="GNS3_project1", connector=serveur)
@@ -354,9 +355,10 @@ def start_teltet(projet_name) :
 
     return noeuds
 
-def commande(cmd) :
+def commande(cmd,noeuds) :
     if type(cmd) == str :
         noeuds["R1"].write(bytes(cmd+"\r",encoding="ascii"))
+'''
 
 def load_data() :
     chemin_data = os.path.join(os.path.dirname(__file__),'..','data','data.json')
@@ -366,7 +368,7 @@ def load_data() :
 
     return intentions
 
-repertoire_projet = 'C:\\Users\\Gauthier\\Desktop\\TC\\TC3\\PROJETS\\projet_GNS3\\GNS3_project1'  
+repertoire_projet = "C:\\Users\\baptr\\GNS3\\projects\\GNS3DnDnew"
 
 
           
@@ -374,9 +376,9 @@ intentions = load_data()
 
 logic(intentions)
 
-#drag_and_drop(repertoire_projet)
+drag_and_drop(repertoire_projet)
 
-noeuds = start_teltet("GNS3_project1")
+#noeuds = start_teltet("GNS3_project1")
 
 
 
