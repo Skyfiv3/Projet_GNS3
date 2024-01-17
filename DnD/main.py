@@ -224,13 +224,19 @@ def conf_bgp(nom_routeur,AS,loopbacks_voisin,plages,adresses_bordures):
     
     
 def conf_igp(nom,IGP,bordures) :
+    texte="""!
+ip forward-protocol nd
+!
+!
+no ip http server
+no ip http secure-server
+!"""    
     if IGP == "RIP" :
 
-        texte = """
+        texte += """
 ipv6 router connected
  redistribute connected
-!
-    """
+"""
     else :
         texte = f"""
 ipv6 router ospf{nom[1:]}
@@ -240,6 +246,29 @@ ipv6 router ospf{nom[1:]}
         
         for bordure in bordures :
             texte +=f""" passive-interface {bordure}
+"""
+    texte+="""!
+!
+!
+!
+control-plane
+!
+!
+line con 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+ stopbits 1
+line aux 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+ stopbits 1
+line vty 0 4
+ login
+!
+!
+end
 """
     filename = os.path.join(os.path.dirname(__file__), "config_files", nom + ".cfg")
 
