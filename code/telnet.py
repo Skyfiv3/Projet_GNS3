@@ -7,6 +7,7 @@ from gns3fy import Gns3Connector, Project
 from telnetlib import Telnet
 from time import sleep
 
+
 def load_data() :
     chemin_data = os.path.join(os.path.dirname(__file__),'..','data','data.json')
 
@@ -167,7 +168,14 @@ def recherche_bordures(data) :
 
 
 def constante(router):
+
     config = "!\n!\n!\n!\n!\n!\n!\n!\n\n!\n! Last configuration change at 14:16:26 UTC Wed Dec 20 2023\n!\nversion 15.2\nservice timestamps debug datetime msec\nservice timestamps log datetime msec\n!\nhostname " + router + "\n!\nboot-start-marker\nboot-end-marker\n!\n!\n!\nno aaa new-model\nno ip icmp rate-limit unreachable\nip cef\n!\n!\n!\n!\n!\n!\nno ip domain lookup\nipv6 unicast-routing\nipv6 cef\n!\n!\nmultilink bundle-name authenticated\n!\n!\n!\n!\n!\n!\n!\n!\n!\nip tcp synwait-time 5\n! \n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!"
+
+    commande("conf t", router)
+    commande("ipv6 unicast-routing",router)
+    commande("end",router)
+
+
 
     # Obtenir le chemin complet du fichier dans le dossier config_files
     filename = os.path.join(os.path.dirname(__file__), "config_files", router + ".cfg")
@@ -178,6 +186,9 @@ def constante(router):
 
         
 def conf_interface(routeur,interface,IGP,adresse):
+
+    # Créer la configuration d'une interface 
+
     texte = f"""\ninterface {interface}
  no ip address"""
     if interface!="Loopback0":
@@ -187,12 +198,28 @@ def conf_interface(routeur,interface,IGP,adresse):
     if IGP == "RIP":
         texte += "\n ipv6 rip connected enable\n!"
         
-    if IGP =="OSPF":
+    elif IGP =="OSPF":
         texte+=f"\n ipv6 ospf {routeur[1:]} area 0\n!"
 
+
+    #Envoi des commande avec telnet
+
+    commande("conf t",routeur)
+    commande(f"interface {interface}",routeur)
+    commande(f"ipv6 enable",routeur)
+    commande(f"ipv6 address {adresse}",routeur)
+
+    if IGP == "RIP" :
+        commande(f"ipv6 rip connected enable",routeur)
+    elif IGP == "OSPF" :
+        commande(f"ipv6 ospf {routeur[1:]} area 0")
+
+    commande("end",routeur)
+
+
+    # Ouvrir le fichier et ajouter les informations à la fin
     filename = os.path.join(os.path.dirname(__file__), "config_files", routeur + ".cfg")
 
-    # Écrire la configuration dans le fichier spécifié
     with open(filename, 'a') as fichier:
         fichier.write(texte)
 
@@ -224,6 +251,9 @@ def conf_bgp(nom_routeur,AS,loopbacks_voisin,plages,adresses_bordures):
         
         
     texte_family+="""\n exit-address-family"""
+
+    commande("",)
+
 
     filename = os.path.join(os.path.dirname(__file__), "config_files", nom_routeur + ".cfg")
 
@@ -360,6 +390,8 @@ def logic(data) :
 
 
 
+
+
 def drag_and_drop(repertoire_projet) :
     dossiers = lister_routers(repertoire_projet)
     for routeur,chemin in dossiers.items() :
@@ -377,9 +409,14 @@ def start_teltet(projet_name) :
 
     return noeuds
 
-def commande(cmd,noeuds,routeur) :
+def commande(cmd,routeur) :
+
+    global noeuds
+
     if type(cmd) == str and type(routeur) ==  str :
         noeuds[routeur].write(bytes(cmd+"\r",encoding="ascii"))
+
+    sleep(0.1)
 
 
 
@@ -391,11 +428,15 @@ repertoire_projet = "C:\\Users\\baptr\\GNS3\\projects\\GNS3DnDnew"
           
 intentions = load_data()
 
-logic(intentions)
+noeuds = start_teltet("GNS3_project1")
 
-drag_and_drop(repertoire_projet)
+conf_interface("R1","GigabitEthernet 1/0","RIP","2001::1/64")
 
-#noeuds = start_teltet("GNS3_project1")
+#logic(intentions)
+
+#drag_and_drop(repertoire_projet)
+
+
 
 
 
