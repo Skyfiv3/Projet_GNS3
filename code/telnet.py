@@ -8,8 +8,8 @@ from telnetlib import Telnet
 from time import sleep
 
 
-def load_data() :
-    chemin_data = os.path.join(os.path.dirname(__file__),'..','data','data.json')
+def load_data(intention) :
+    chemin_data = os.path.join(os.path.dirname(__file__),'..','data',intention)
 
     with open(chemin_data,"r") as data :
         intentions = json.load(data)          
@@ -212,7 +212,9 @@ def conf_interface(routeur,interface,IGP,adresse):
     if IGP == "RIP" :
         commande(f"ipv6 rip connected enable",routeur)
     elif IGP == "OSPF" :
-        commande(f"ipv6 ospf {routeur[1:]} area 0")
+        commande(f"ipv6 ospf {routeur[1:]} area 0",routeur)
+
+    commande("no shutdown",routeur)
 
     commande("end",routeur)
 
@@ -224,7 +226,9 @@ def conf_interface(routeur,interface,IGP,adresse):
         fichier.write(texte)
 
 
+
 def conf_bgp(nom_routeur,AS,loopbacks_voisin,plages,adresses_bordures):
+
     texte_routeur = f"""\nrouter bgp {AS}
  bgp router-id {nom_routeur[1:]}.{nom_routeur[1:]}.{nom_routeur[1:]}.{nom_routeur[1:]}
  bgp log-neighbor-changes
@@ -252,7 +256,25 @@ def conf_bgp(nom_routeur,AS,loopbacks_voisin,plages,adresses_bordures):
         
     texte_family+="""\n exit-address-family"""
 
-    commande("",)
+
+
+    commande("conf t",nom_routeur)
+    commande(f"router bgp {AS}",nom_routeur)
+    commande(f"bgp router-id {nom_routeur[1:]}.{nom_routeur[1:]}.{nom_routeur[1:]}.{nom_routeur[1:]}",nom_routeur)
+    commande(f"no bgp default ipv4-unicast",nom_routeur)
+    commande(f"address-family ipv6",nom_routeur)
+    for plage in plages :
+        commande(f"network {plage}",nom_routeur)
+    for adresse in loopbacks_voisin:
+        commande(f"neighbor {adresse[:-4]} remote-as {AS}",nom_routeur)
+        commande(f"neighbor {adresse[:-4]} update-source Loopback0",nom_routeur)
+        commande(f"neighbor {adresse[:-4]} activate",nom_routeur)
+    for adresse,num_AS in adresses_bordures:
+        commande(f"neighbor {adresse[:-3]} remote-as {num_AS}",nom_routeur)
+        commande(f"neighbor {adresse[:-3]} activate",nom_routeur)
+    commande(f"end",nom_routeur)
+
+
 
 
     filename = os.path.join(os.path.dirname(__file__), "config_files", nom_routeur + ".cfg")
@@ -275,7 +297,7 @@ no ip http secure-server
     if IGP == "RIP" :
 
         texte += """
-ipv6 router connected
+ipv6 router rip connected
  redistribute connected
 """
     else :
@@ -311,6 +333,26 @@ line vty 0 4
 !
 end
 """
+    if IGP == "RIP" :
+        commande("conf t", nom)
+        commande("ipv6 router rip connected",nom)
+        commande("redistribute connected",nom)
+
+    else :
+        commande("conf t", nom)
+        commande(f"ipv6 router ospf {nom[1:]}",nom)
+        commande(f"router-id {nom[1:]}.{nom[1:]}.{nom[1:]}.{nom[1:]}",nom)
+        commande(f"passive-interface Loopback0",nom)
+
+        for bordure in bordures :
+            commande(f"passive-interface {bordure}",nom)
+
+    commande("end",nom)
+
+
+
+
+
     filename = os.path.join(os.path.dirname(__file__), "config_files", nom + ".cfg")
 
     # Écrire la configuration dans le fichier spécifié
@@ -397,9 +439,9 @@ def drag_and_drop(repertoire_projet) :
     for routeur,chemin in dossiers.items() :
         shutil.copy(os.path.join(os.path.dirname(__file__), "config_files",routeur+".cfg"),chemin)
 
-def start_teltet(projet_name) :
+def start_telnet(projet_name) :
     serveur = Gns3Connector("http://localhost:3080")
-    projet = Project(name="GNS3_project1", connector=serveur)
+    projet = Project(projet_name, connector=serveur)
     projet.get()
     projet.open()
 
@@ -413,8 +455,7 @@ def commande(cmd,routeur) :
 
     global noeuds
 
-    if type(cmd) == str and type(routeur) ==  str :
-        noeuds[routeur].write(bytes(cmd+"\r",encoding="ascii"))
+    noeuds[routeur].write(bytes(cmd+"\r",encoding="ascii"))
 
     sleep(0.1)
 
@@ -426,13 +467,11 @@ repertoire_projet = "C:\\Users\\baptr\\GNS3\\projects\\GNS3DnDnew"
 
 
           
-intentions = load_data()
+intentions = load_data("3-3.json")
 
-noeuds = start_teltet("GNS3_project1")
+noeuds = start_telnet("untitled")
 
-conf_interface("R1","GigabitEthernet 1/0","RIP","2001::1/64")
-
-#logic(intentions)
+logic(intentions)
 
 #drag_and_drop(repertoire_projet)
 

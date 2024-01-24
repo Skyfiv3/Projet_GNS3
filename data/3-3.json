@@ -1,0 +1,51 @@
+{
+    "AS" :{
+        "AS1" : {
+            "IGP" : "RIP",
+            "plage_IP" : {
+                "interfaces_physique": "2001::/64",
+                "interfaces_loopback": "1001::/64"
+            },
+
+            "routeurs" : [
+                "R1",
+                "R2",
+                "R3"
+            ],
+            "liens" :[ 
+            [["R1","G1/0"],["R2","G1/0"]],
+            [["R2","G2/0"],["R3","G2/0"]]
+            ],
+            "voisins" : {
+                "AS2" : "Client"
+            }
+        
+        },
+
+        "AS2" : {
+            "IGP" : "OSPF",
+            "numero_AS" : 2,
+            "plage_IP" : {
+                "interfaces_physique": "2002::/64",
+                "interfaces_loopback": "1002::/64"
+            },
+
+            "routeurs" : [
+                "R4",
+                "R5",
+                "R6"
+
+            ],
+            "liens" : [
+            [["R4","G1/0"],["R5","G1/0"]],
+            [["R5","G2/0"],["R6","G2/0"]]
+            ],
+            "voisins" : {
+                "AS1" : "Fournisseur"
+            }
+        }
+    },
+    "liens_eGP" : [
+        [["R3","G3/0","2003:1::1/64"],["R4","G3/0","2003:1::2/64"]]
+    ]
+}
