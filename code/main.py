@@ -364,7 +364,7 @@ def drag_and_drop(repertoire_projet) :
 
 
 
-repertoire_projet = "C:\\Users\\baptr\\GNS3\\projects\\GNS3DnDnew"
+repertoire_projet = "C:\\Users\\baptr\\GNS3\\projects\\GNS3_arch_totale"
 
 
           
