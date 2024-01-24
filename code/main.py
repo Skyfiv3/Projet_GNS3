@@ -3,8 +3,6 @@ import re
 import json
 import ipaddress
 import shutil
-from gns3fy import Gns3Connector, Project
-from telnetlib import Telnet
 from time import sleep
 
 def load_data() :
@@ -357,29 +355,10 @@ def logic(data) :
             conf_igp(routeur["nom"],IGP,interfaces_bordures)
 
 
-
-
-
 def drag_and_drop(repertoire_projet) :
     dossiers = lister_routers(repertoire_projet)
     for routeur,chemin in dossiers.items() :
         shutil.copy(os.path.join(os.path.dirname(__file__), "config_files",routeur+".cfg"),chemin)
-
-def start_teltet(projet_name) :
-    serveur = Gns3Connector("http://localhost:3080")
-    projet = Project(name="GNS3_project1", connector=serveur)
-    projet.get()
-    projet.open()
-
-    noeuds = {}
-    for noeud in projet.nodes :
-        noeuds[noeud.name] = Telnet(noeud.console_host,str(noeud.console))
-
-    return noeuds
-
-def commande(cmd,noeuds,routeur) :
-    if type(cmd) == str and type(routeur) ==  str :
-        noeuds[routeur].write(bytes(cmd+"\r",encoding="ascii"))
 
 
 
@@ -395,7 +374,6 @@ logic(intentions)
 
 drag_and_drop(repertoire_projet)
 
-#noeuds = start_teltet("GNS3_project1")
 
 
 
