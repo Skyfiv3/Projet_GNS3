@@ -212,9 +212,17 @@ def conf_bgp(nom_routeur,AS,loopbacks_voisin,plages,adresses_bordures):
         texte_family+=f"""\n  neighbor {adresse[:-4]} activate"""
 
 
-    for adresse,num_AS in adresses_bordures:
+    for adresse,num_AS,type in adresses_bordures:
         texte_routeur+=f"""\n neighbor {adresse[:-3]} remote-as {num_AS}"""
         texte_family+=f"""\n  neighbor {adresse[:-3]} activate"""
+        if type == "Client" :
+            texte_family+=f"""\n  neighbor {adresse[:-3]} route-map SET_LOCAL_PREF_CLIENT in"""
+            
+        elif type == "Fournisseur" :
+            texte_family+=f"""\n  neighbor {adresse[:-3]} route-map SET_LOCAL_PREF_PROVIDER in"""
+        else :
+            texte_family+=f"""\n  neighbor {adresse[:-3]} route-map SET_LOCAL_PREF_PEER in"""
+            
     texte_routeur+=f"""\n !
  address-family ipv4
  exit-address-family
@@ -230,6 +238,32 @@ def conf_bgp(nom_routeur,AS,loopbacks_voisin,plages,adresses_bordures):
         fichier.write(texte_routeur)
         fichier.write(texte_family)
     
+def set_route_map(nom_routeur):
+    texte="""
+!
+ipv6 access-list FILTER_ROUTES
+ permit ipv6 any any
+!
+route-map SET_LOCAL_PREF_CLIENT permit 10
+ match ipv6 address FILTER_ROUTES
+ set local-preference 50
+!
+route-map SET_LOCAL_PREF_PEER permit 10
+ match ipv6 address FILTER_ROUTES
+ set local-preference 100
+!
+route-map SET_LOCAL_PREF_PROVIDER permit 10
+ match ipv6 address FILTER_ROUTES
+ set local-preference 150
+!
+"""
+    filename = os.path.join(os.path.dirname(__file__), "config_files", nom_routeur + ".cfg")
+
+    # Écrire la configuration dans le fichier spécifié
+    with open(filename, 'a') as fichier:
+        fichier.write(texte)
+            
+    
     
 def conf_igp(nom,IGP,bordures) :
     texte="""
@@ -243,7 +277,7 @@ no ip http secure-server
     if IGP == "RIP" :
 
         texte += """
-ipv6 router connected
+ipv6 router rip connected
  redistribute connected
 """
     else :
@@ -328,7 +362,14 @@ def logic(data) :
                         for AS_bordure in data["AS"] :
                             for routeur_bordure in data["AS"][AS_bordure]["routeurs"] :
                                 if routeur_bordure["nom"] == bordures[j][0] :
-                                    voisin.append(AS_bordure[2:])
+                                    num_AS = AS_bordure[2:]
+                                    voisin.append(num_AS)
+                        
+                        for AS_voisin in data["AS"][AS]["voisins"] :
+                            if AS_voisin[2:] == num_AS :
+                                voisin.append(data["AS"][AS]["voisins"][AS_voisin])
+                        
+                        
                         
                         addresses_bordures.append(voisin)
 
@@ -353,6 +394,9 @@ def logic(data) :
             conf_bgp(routeur["nom"],AS[2:],loopback_voisins,plages_addresses,addresses_bordures)
 
             conf_igp(routeur["nom"],IGP,interfaces_bordures)
+            
+            if routeur["etat"] == "bordure" :
+                set_route_map(routeur["nom"])
 
 
 def drag_and_drop(repertoire_projet) :
