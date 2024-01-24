@@ -20,7 +20,10 @@
             [["R3","G1/0"],["R4","G1/0"]]
             ],
             "voisins" : {
-                "AS2" : "Client"
+                "AS2" : "Client",
+                "AS3" : "Client",
+                "AS4" : "Peer",
+                "AS5" : "Fournisseur"
             }
         
         },
@@ -48,9 +51,80 @@
             "voisins" : {
                 "AS1" : "Fournisseur"
             }
+        },
+
+        
+        "AS3" : {
+            "IGP" : "OSPF",
+            "numero_AS" : 3,
+            "plage_IP" : {
+                "interfaces_physique": "2003::/64",
+                "interfaces_loopback": "1003::/64"
+            },
+
+            "routeurs" : [
+                "R9",
+                "R10",
+                "R11"
+            ],
+            "liens" : [
+            [["R9","G1/0"],["R10","G1/0"]],
+            [["R10","G2/0"],["R11","G2/0"]]
+            ],
+            "voisins" : {
+                "AS1" : "Fournisseur"
+            }
+        },
+
+        "AS4" : {
+            "IGP" : "OSPF",
+            "numero_AS" : 4,
+            "plage_IP" : {
+                "interfaces_physique": "2004::/64",
+                "interfaces_loopback": "1004::/64"
+            },
+
+            "routeurs" : [
+                "R12",
+                "R13",
+                "R14"
+            ],
+            "liens" : [
+            [["R12","G1/0"],["R13","G1/0"]],
+            [["R13","G2/0"],["R14","G2/0"]]
+            ],
+            "voisins" : {
+                "AS1" : "Peer"
+            }
+        },
+
+        "AS5" : {
+            "IGP" : "OSPF",
+            "numero_AS" : 5,
+            "plage_IP" : {
+                "interfaces_physique": "2005::/64",
+                "interfaces_loopback": "1005::/64"
+            },
+
+            "routeurs" : [
+                "R15",
+                "R16",
+                "R17"
+            ],
+            "liens" : [
+            [["R15","G1/0"],["R16","G1/0"]],
+            [["R16","G2/0"],["R17","G2/0"]]
+            ],
+            "voisins" : {
+                "AS1" : "Client"
+            }
         }
     },
     "liens_eGP" : [
-        [["R4","G3/0","2003:1::1/64"],["R5","G3/0","2003:1::2/64"]]
+        [["R4","G3/0","2003:1::1/64"],["R5","G3/0","2003:1::2/64"]],
+        [["R2","G3/0","2003:2::1/64"],["R9","G3/0","2003:2::2/64"]],
+        [["R1","G3/0","2003:3::1/64"],["R12","G3/0","2003:3::2/64"]],
+        [["R3","G3/0","2003:4::1/64"],["R15","G3/0","2003:4::2/64"]]
+
     ]
 }
