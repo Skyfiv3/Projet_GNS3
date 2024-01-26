@@ -200,7 +200,7 @@ def conf_bgp(nom_routeur,AS,loopbacks_voisin,plages,adresses_bordures):
  bgp router-id {nom_routeur[1:]}.{nom_routeur[1:]}.{nom_routeur[1:]}.{nom_routeur[1:]}
  bgp log-neighbor-changes
  no bgp default ipv4-unicast"""
-    texte_family=f"""\naddress-family ipv6"""
+    texte_family=f"""\n address-family ipv6"""
     for plage in plages :
         texte_family+=f"""\n  network {plage}"""
     
@@ -210,11 +210,26 @@ def conf_bgp(nom_routeur,AS,loopbacks_voisin,plages,adresses_bordures):
         texte_routeur+=f"""\n neighbor {adresse[:-4]} remote-as {AS}
  neighbor {adresse[:-4]} update-source Loopback0"""
         texte_family+=f"""\n  neighbor {adresse[:-4]} activate"""
+        texte_family+=f"""\n  neighbor {adresse[:-4]} send-community"""
+        
 
 
-    for adresse,num_AS in adresses_bordures:
+    for adresse,num_AS,type in adresses_bordures:
         texte_routeur+=f"""\n neighbor {adresse[:-3]} remote-as {num_AS}"""
         texte_family+=f"""\n  neighbor {adresse[:-3]} activate"""
+        texte_family+=f"""\n  neighbor {adresse[:-3]} send-community"""
+        if type == "Client" :
+            texte_family+=f"""\n  neighbor {adresse[:-3]} route-map SET_CLIENT_IN in"""
+            
+        elif type == "Fournisseur" :
+            texte_family+=f"""\n  neighbor {adresse[:-3]} route-map SET_PROVIDER_IN in"""
+            texte_family+=f"""\n  neighbor {adresse[:-3]} route-map OUTWARD out"""
+        elif type=="Peer" :
+            texte_family+=f"""\n  neighbor {adresse[:-3]} route-map SET_PEER_IN in"""
+            texte_family+=f"""\n  neighbor {adresse[:-3]} route-map OUTWARD out"""
+        
+        
+            
     texte_routeur+=f"""\n !
  address-family ipv4
  exit-address-family
@@ -230,35 +245,27 @@ def conf_bgp(nom_routeur,AS,loopbacks_voisin,plages,adresses_bordures):
         fichier.write(texte_routeur)
         fichier.write(texte_family)
     
-    
-def conf_igp(nom,IGP,bordures) :
-    texte="""
+def set_route_map(nom_routeur):
+    texte="""!
+ip bgp community new-format
+ip community-list 1 permit 1
+ip community-list 2 permit 2
+ip community-list 3 permit 3
 !
-ip forward-protocol nd
+route-map SET_CLIENT_IN permit 10
+ set community 1
+ set local-preference 150
 !
+route-map SET_PEER_IN permit 10
+ set community 2
+ set local-preference 100
 !
-no ip http server
-no ip http secure-server
-!"""    
-    if IGP == "RIP" :
-
-        texte += """
-ipv6 router connected
- redistribute connected
-"""
-    else :
-        texte += f"""
-ipv6 router ospf {nom[1:]}
- router-id {nom[1:]}.{nom[1:]}.{nom[1:]}.{nom[1:]}
- passive-interface Loopback0
-"""
-        
-        for bordure in bordures :
-            texte +=f""" passive-interface {bordure}
-"""
-    texte+="""!
+route-map SET_PROVIDER_IN permit 10
+ set community 3
+ set local-preference 50
 !
-!
+route-map OUTWARD permit 10
+ match community 1
 !
 control-plane
 !
@@ -279,6 +286,40 @@ line vty 0 4
 !
 end
 """
+    filename = os.path.join(os.path.dirname(__file__), "config_files", nom_routeur + ".cfg")
+
+    # Écrire la configuration dans le fichier spécifié
+    with open(filename, 'a') as fichier:
+        fichier.write(texte)
+            
+    
+    
+def conf_igp(nom,IGP,bordures) :
+    texte="""
+!
+ip forward-protocol nd
+!
+!
+no ip http server
+no ip http secure-server
+!"""    
+    if IGP == "RIP" :
+
+        texte += """
+ipv6 router rip connected
+ redistribute connected
+"""
+    else :
+        texte += f"""
+ipv6 router ospf {nom[1:]}
+ router-id {nom[1:]}.{nom[1:]}.{nom[1:]}.{nom[1:]}
+ passive-interface Loopback0
+"""
+        
+        for bordure in bordures :
+            texte +=f""" passive-interface {bordure}
+"""
+    
     filename = os.path.join(os.path.dirname(__file__), "config_files", nom + ".cfg")
 
     # Écrire la configuration dans le fichier spécifié
@@ -328,7 +369,14 @@ def logic(data) :
                         for AS_bordure in data["AS"] :
                             for routeur_bordure in data["AS"][AS_bordure]["routeurs"] :
                                 if routeur_bordure["nom"] == bordures[j][0] :
-                                    voisin.append(AS_bordure[2:])
+                                    num_AS = AS_bordure[2:]
+                                    voisin.append(num_AS)
+                        
+                        for AS_voisin in data["AS"][AS]["voisins"] :
+                            if AS_voisin[2:] == num_AS :
+                                voisin.append(data["AS"][AS]["voisins"][AS_voisin])
+                        
+                        
                         
                         addresses_bordures.append(voisin)
 
@@ -353,6 +401,9 @@ def logic(data) :
             conf_bgp(routeur["nom"],AS[2:],loopback_voisins,plages_addresses,addresses_bordures)
 
             conf_igp(routeur["nom"],IGP,interfaces_bordures)
+            
+            if routeur["etat"] == "bordure" :
+                set_route_map(routeur["nom"])
 
 
 def drag_and_drop(repertoire_projet) :

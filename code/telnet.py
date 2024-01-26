@@ -262,7 +262,7 @@ def conf_bgp(nom_routeur,AS,loopbacks_voisin,plages,adresses_bordures):
     commande(f"router bgp {AS}",nom_routeur)
     commande(f"bgp router-id {nom_routeur[1:]}.{nom_routeur[1:]}.{nom_routeur[1:]}.{nom_routeur[1:]}",nom_routeur)
     commande(f"no bgp default ipv4-unicast",nom_routeur)
-    commande(f"address-family ipv6",nom_routeur)
+    commande(f"address-family ipv6 unicast",nom_routeur)
     for plage in plages :
         commande(f"network {plage}",nom_routeur)
     for adresse in loopbacks_voisin:
