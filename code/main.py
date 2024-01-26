@@ -200,7 +200,7 @@ def conf_bgp(nom_routeur,AS,loopbacks_voisin,plages,adresses_bordures):
  bgp router-id {nom_routeur[1:]}.{nom_routeur[1:]}.{nom_routeur[1:]}.{nom_routeur[1:]}
  bgp log-neighbor-changes
  no bgp default ipv4-unicast"""
-    texte_family=f"""\naddress-family ipv6"""
+    texte_family=f"""\n address-family ipv6"""
     for plage in plages :
         texte_family+=f"""\n  network {plage}"""
     
@@ -210,18 +210,25 @@ def conf_bgp(nom_routeur,AS,loopbacks_voisin,plages,adresses_bordures):
         texte_routeur+=f"""\n neighbor {adresse[:-4]} remote-as {AS}
  neighbor {adresse[:-4]} update-source Loopback0"""
         texte_family+=f"""\n  neighbor {adresse[:-4]} activate"""
+        texte_family+=f"""\n  neighbor {adresse[:-4]} send-community"""
+        
 
 
     for adresse,num_AS,type in adresses_bordures:
         texte_routeur+=f"""\n neighbor {adresse[:-3]} remote-as {num_AS}"""
         texte_family+=f"""\n  neighbor {adresse[:-3]} activate"""
+        texte_family+=f"""\n  neighbor {adresse[:-3]} send-community"""
         if type == "Client" :
-            texte_family+=f"""\n  neighbor {adresse[:-3]} route-map SET_LOCAL_PREF_CLIENT in"""
+            texte_family+=f"""\n  neighbor {adresse[:-3]} route-map SET_CLIENT_IN in"""
             
         elif type == "Fournisseur" :
-            texte_family+=f"""\n  neighbor {adresse[:-3]} route-map SET_LOCAL_PREF_PROVIDER in"""
-        else :
-            texte_family+=f"""\n  neighbor {adresse[:-3]} route-map SET_LOCAL_PREF_PEER in"""
+            texte_family+=f"""\n  neighbor {adresse[:-3]} route-map SET_PROVIDER_IN in"""
+            texte_family+=f"""\n  neighbor {adresse[:-3]} route-map OUTWARD out"""
+        elif type=="Peer" :
+            texte_family+=f"""\n  neighbor {adresse[:-3]} route-map SET_PEER_IN in"""
+            texte_family+=f"""\n  neighbor {adresse[:-3]} route-map OUTWARD out"""
+        
+        
             
     texte_routeur+=f"""\n !
  address-family ipv4
@@ -239,23 +246,45 @@ def conf_bgp(nom_routeur,AS,loopbacks_voisin,plages,adresses_bordures):
         fichier.write(texte_family)
     
 def set_route_map(nom_routeur):
-    texte="""
+    texte="""!
+ip bgp community new-format
+ip community-list 1 permit 1
+ip community-list 2 permit 2
+ip community-list 3 permit 3
 !
-ipv6 access-list FILTER_ROUTES
- permit ipv6 any any
-!
-route-map SET_LOCAL_PREF_CLIENT permit 10
- match ipv6 address FILTER_ROUTES
- set local-preference 50
-!
-route-map SET_LOCAL_PREF_PEER permit 10
- match ipv6 address FILTER_ROUTES
- set local-preference 100
-!
-route-map SET_LOCAL_PREF_PROVIDER permit 10
- match ipv6 address FILTER_ROUTES
+route-map SET_CLIENT_IN permit 10
+ set community 1
  set local-preference 150
 !
+route-map SET_PEER_IN permit 10
+ set community 2
+ set local-preference 100
+!
+route-map SET_PROVIDER_IN permit 10
+ set community 3
+ set local-preference 50
+!
+route-map OUTWARD permit 10
+ match community 1
+!
+control-plane
+!
+!
+line con 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+ stopbits 1
+line aux 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+ stopbits 1
+line vty 0 4
+ login
+!
+!
+end
 """
     filename = os.path.join(os.path.dirname(__file__), "config_files", nom_routeur + ".cfg")
 
@@ -290,29 +319,7 @@ ipv6 router ospf {nom[1:]}
         for bordure in bordures :
             texte +=f""" passive-interface {bordure}
 """
-    texte+="""!
-!
-!
-!
-control-plane
-!
-!
-line con 0
- exec-timeout 0 0
- privilege level 15
- logging synchronous
- stopbits 1
-line aux 0
- exec-timeout 0 0
- privilege level 15
- logging synchronous
- stopbits 1
-line vty 0 4
- login
-!
-!
-end
-"""
+    
     filename = os.path.join(os.path.dirname(__file__), "config_files", nom + ".cfg")
 
     # Écrire la configuration dans le fichier spécifié
