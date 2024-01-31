@@ -262,16 +262,32 @@ def conf_bgp(nom_routeur,AS,loopbacks_voisin,plages,adresses_bordures):
     commande(f"router bgp {AS}",nom_routeur)
     commande(f"bgp router-id {nom_routeur[1:]}.{nom_routeur[1:]}.{nom_routeur[1:]}.{nom_routeur[1:]}",nom_routeur)
     commande(f"no bgp default ipv4-unicast",nom_routeur)
+    for address in loopbacks_voisin:
+        commande(f"neighbor {address[:-4]} remote-as {AS}",nom_routeur)
+        commande(f"neighbor {address[:-4]} update-source Loopback0",nom_routeur)
+    
+    for adresse,num_AS,type in adresses_bordures:
+        commande(f"neighbor {adresse[:-3]} remote-as {num_AS}",nom_routeur)
+
+    
     commande(f"address-family ipv6 unicast",nom_routeur)
     for plage in plages :
         commande(f"network {plage}",nom_routeur)
     for adresse in loopbacks_voisin:
-        commande(f"neighbor {adresse[:-4]} remote-as {AS}",nom_routeur)
-        commande(f"neighbor {adresse[:-4]} update-source Loopback0",nom_routeur)
         commande(f"neighbor {adresse[:-4]} activate",nom_routeur)
     for adresse,num_AS in adresses_bordures:
-        commande(f"neighbor {adresse[:-3]} remote-as {num_AS}",nom_routeur)
         commande(f"neighbor {adresse[:-3]} activate",nom_routeur)
+        if type == "Client" :
+            commande(f"neighbor {adresse[:-3]} route-map SET_CLIENT_IN in",nom_routeur)
+            
+        elif type == "Fournisseur" :
+            commande(f"neighbor {adresse[:-3]} route-map SET_PROVIDER_IN in",nom_routeur)
+            commande(f"neighbor {adresse[:-3]} route-map OUTWARD out",nom_routeur)
+
+        elif type=="Peer" :
+            commande(f"neighbor {adresse[:-3]} route-map SET_PEER_IN in",nom_routeur)
+            commande(f"neighbor {adresse[:-3]} route-map OUTWARD out",nom_routeur)
+           
     commande(f"end",nom_routeur)
 
 
@@ -284,6 +300,55 @@ def conf_bgp(nom_routeur,AS,loopbacks_voisin,plages,adresses_bordures):
         fichier.write(texte_routeur)
         fichier.write(texte_family)
     
+def set_route_map(nom_routeur):
+    texte="""!
+ip bgp community new-format
+ip community-list 1 permit 1
+ip community-list 2 permit 2
+ip community-list 3 permit 3
+!
+route-map SET_CLIENT_IN permit 10
+ set community 1
+ set local-preference 150
+!
+route-map SET_PEER_IN permit 10
+ set community 2
+ set local-preference 100
+!
+route-map SET_PROVIDER_IN permit 10
+ set community 3
+ set local-preference 50
+!
+route-map OUTWARD permit 10
+ match community 1
+!
+control-plane
+!
+!
+line con 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+ stopbits 1
+line aux 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+ stopbits 1
+line vty 0 4
+ login
+!
+!
+end
+"""
+    filename = os.path.join(os.path.dirname(__file__), "config_files", nom_routeur + ".cfg")
+
+    # Écrire la configuration dans le fichier spécifié
+    with open(filename, 'a') as fichier:
+        fichier.write(texte)
+             
+ 
+ 
     
 def conf_igp(nom,IGP,bordures) :
     texte="""
