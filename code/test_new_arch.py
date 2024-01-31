@@ -6,10 +6,10 @@ import shutil
 from time import sleep
 
 def load_data() :
-    chemin_data = os.path.join(os.path.dirname(__file__),'..','data','data.json')
+    chemin_data = os.path.join(os.path.dirname(__file__),'..','data','data_test.json')
 
     with open(chemin_data,"r") as data :
-        intentions = json.load(data)          
+        intentions = json.load(data)
 
     return intentions
 
@@ -421,7 +421,7 @@ def drag_and_drop(repertoire_projet) :
 
 
 
-repertoire_projet = "C:\\Users\\baptr\\GNS3\\projects\\GNS3_arch_totale"
+repertoire_projet = "C:\\Users\\baptr\\GNS3\\projects\\GNS3_arch_finale"
 
 
           
