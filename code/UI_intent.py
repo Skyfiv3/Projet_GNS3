@@ -1,9 +1,9 @@
 import tkinter as tk
+import json
+import os
+import os
 
-
-def change_AS():
-    global selected
-
+def get_all_entries() :
     plages_ip[selected] = plage_ip.get()
     plages_lb[selected] = plage_lb.get()
     IGPs[selected] = IGP.get()
@@ -23,13 +23,20 @@ def change_AS():
         voisins[selected][i] = voisins_entries[i].get()
         voisins_type[selected][i] = voisins_type_entries[i].get()
 
-    for i in range(len(eGP_link[selected])) :
-        eGP_link[selected][i] = eGP_link_entries[i].get()
-        eGP_link2[selected][i] = eGP_link_entries2[i].get()
-        eGP_interf[selected][i] = eGP_interf_entries[i].get()
-        eGP_interf2[selected][i] = eGP_interf_entries2[i].get()
-        eGP_addr[selected][i] = eGP_addr_entries[i].get()
-        eGP_addr2[selected][i] = eGP_addr_entries2[i].get()
+
+    for i in range(len(eGP_link)) :
+        eGP_link[i] = eGP_link_entries[i].get()
+        eGP_link2[i] = eGP_link_entries2[i].get()
+        eGP_interf[i] = eGP_interf_entries[i].get()
+        eGP_interf2[i] = eGP_interf_entries2[i].get()
+        eGP_addr[i] = eGP_addr_entries[i].get()
+        eGP_addr2[i] = eGP_addr_entries2[i].get()
+
+
+def change_AS():
+    global selected
+
+    get_all_entries()
 
     selected = var.get()-1
 
@@ -98,7 +105,8 @@ def change_AS():
             interf_entries.pop().destroy()
             interf_entries2.pop().destroy()
     
-    eGP_liens_diff = len(eGP_link_entries) - len(eGP_link[selected])
+    '''
+    eGP_liens_diff = len(eGP_link_entries) - len(eGP_link)
     if eGP_liens_diff < 0 :
         for _ in range(-eGP_liens_diff) :
             entry = tk.Entry(eGP_link_frame)
@@ -135,7 +143,7 @@ def change_AS():
 
             eGP_addr_entries.pop().destroy()
             eGP_addr_entries2.pop().destroy()
-    
+    '''
 
     for i in range(len(routeurs_entries)) :
         routeurs_entries[i].delete(0, tk.END)
@@ -162,24 +170,26 @@ def change_AS():
         interf_entries2[i].delete(0, tk.END)
         interf_entries2[i].insert(0, liens2[selected][i])
     
+    '''
     for i in range(len(eGP_link_entries)) :
         eGP_link_entries[i].delete(0, tk.END)
-        eGP_link_entries[i].insert(0, eGP_link[selected][i])
+        eGP_link_entries[i].insert(0, eGP_link[i])
 
         eGP_link_entries2[i].delete(0, tk.END)
-        eGP_link_entries2[i].insert(0, eGP_link2[selected][i])
+        eGP_link_entries2[i].insert(0, eGP_link2[i])
 
         eGP_interf_entries[i].delete(0, tk.END)
-        eGP_interf_entries[i].insert(0, eGP_interf[selected][i])
+        eGP_interf_entries[i].insert(0, eGP_interf[i])
 
         eGP_interf_entries2[i].delete(0, tk.END)
-        eGP_interf_entries2[i].insert(0, eGP_interf2[selected][i])
+        eGP_interf_entries2[i].insert(0, eGP_interf2[i])
 
         eGP_addr_entries[i].delete(0, tk.END)
-        eGP_addr_entries[i].insert(0, eGP_addr[selected][i])
+        eGP_addr_entries[i].insert(0, eGP_addr[i])
 
         eGP_addr_entries2[i].delete(0, tk.END)
-        eGP_addr_entries2[i].insert(0, eGP_addr2[selected][i])
+        eGP_addr_entries2[i].insert(0, eGP_addr2[i])
+    '''
 
 
 def add_as():
@@ -203,8 +213,6 @@ def add_as():
     interf.append([""])
     interf2.append([""])
 
-    eGP_link.append([""])
-    eGP_link2.append([""])
 
 
     
@@ -279,54 +287,204 @@ def add_eGP_lien() :
     entry = tk.Entry(eGP_link_frame)
     entry.pack(side=tk.LEFT)
     eGP_link_entries.append(entry)
-    eGP_link[selected].append(entry.get())
+    eGP_link.append(entry.get())
 
     entry2 = tk.Entry(eGP2_link_frame)
     entry2.pack(side=tk.LEFT)
     eGP_link_entries2.append(entry2)
-    eGP_link2[selected].append(entry2.get())
+    eGP_link2.append(entry2.get())
 
     interf_entry = tk.Entry(eGP_interf_frame)
     interf_entry.pack(side=tk.LEFT)
     eGP_interf_entries.append(interf_entry)
-    eGP_interf[selected].append(interf_entry.get())
+    eGP_interf.append(interf_entry.get())
 
     interf_entry2 = tk.Entry(eGP2_interf_frame)
     interf_entry2.pack(side=tk.LEFT)
     eGP_interf_entries2.append(interf_entry2)
-    eGP_interf2[selected].append(interf_entry2.get())
+    eGP_interf2.append(interf_entry2.get())
 
     addr_entry = tk.Entry(eGP_addr_frame)
     addr_entry.pack(side=tk.LEFT)
     eGP_addr_entries.append(addr_entry)
-    eGP_addr[selected].append(addr_entry.get())
+    eGP_addr.append(addr_entry.get())
 
     addr_entry2 = tk.Entry(eGP2_addr_frame)
     addr_entry2.pack(side=tk.LEFT)
     eGP_addr_entries2.append(addr_entry2)
-    eGP_addr2[selected].append(addr_entry2.get())
+    eGP_addr2.append(addr_entry2.get())
 
 def rem_eGP_lien():
     eGP_link_entries.pop().destroy()
-    eGP_link[selected].pop()
+    eGP_link.pop()
 
     eGP_link_entries2.pop().destroy()
-    eGP_link2[selected].pop()  
+    eGP_link2.pop()  
 
     eGP_interf_entries.pop().destroy()
-    eGP_interf[selected].pop()
+    eGP_interf.pop()
 
     eGP_interf_entries2.pop().destroy()
-    eGP_interf2[selected].pop()  
+    eGP_interf2.pop()  
 
     eGP_addr_entries.pop().destroy()
-    eGP_addr[selected].pop()
+    eGP_addr.pop()
 
     eGP_addr_entries2.pop().destroy()
-    eGP_addr2[selected].pop()
+    eGP_addr2.pop()
+
+def export_func() :
+
+    ready = True
+    problems = ""
+
+    get_all_entries()
+
+    for AS_index in range(len(routeurs)) :
+        if IGPs[AS_index] == "" :
+            ready = False
+            problems += "Missing IGP for AS " + str(AS_index+1) + "\n"
+        if plages_ip[AS_index] == "" :
+            ready = False
+            problems += "Missing IP range for AS " + str(AS_index+1) + "\n"
+        if plages_lb[AS_index] == "" :
+            ready = False
+            problems += "Missing loopback range for AS " + str(AS_index+1) + "\n"
+        for router_index in range(len(routeurs[AS_index])) :
+            if routeurs[AS_index][router_index] == "" :
+                ready = False
+                problems += f"Missing router {router_index} name for AS " + str(AS_index+1) + "\n"
+        
+        for lien_index in range(len(liens[AS_index])) :
+            if liens[AS_index][lien_index] == "" :
+                ready = False
+                problems += f"Missing first router in link {lien_index} for AS " + str(AS_index+1) + "\n"
+            if liens2[AS_index][lien_index] == "" :
+                ready = False
+                problems += f"Missing second router in link {lien_index} for AS " + str(AS_index+1) + "\n"
+            if interf[AS_index][lien_index] == "" :
+                ready = False
+                problems += f"Missing first interface in link {lien_index} for AS " + str(AS_index+1) + "\n"
+            if interf2[AS_index][lien_index] == "" :
+                ready = False
+                problems += f"Missing second interface in link {lien_index} for AS " + str(AS_index+1) + "\n"
+            
+        for voisin_index in range(len(voisins[AS_index])) :
+            if voisins[AS_index][voisin_index] == "" :
+                ready = False
+                problems += f"Missing neighbor {voisin_index} name for AS " + str(AS_index+1) + "\n"
+            if voisins_type[AS_index][voisin_index] == "" :
+                ready = False
+                problems += f"Missing neighbor {voisin_index} type for AS " + str(AS_index+1) + "\n"
+
+    for eGP_lien_index in range(len(eGP_link)) :
+        if eGP_link[eGP_lien_index] == "" :
+            ready = False
+            problems += f"Missing first router in eGP link {eGP_lien_index} for AS " + str(AS_index+1) + "\n"
+        if eGP_link2[eGP_lien_index] == "" :
+            ready = False
+            problems += f"Missing second router in eGP link {eGP_lien_index} for AS " + str(AS_index+1) + "\n"
+        if eGP_interf[eGP_lien_index] == "" :
+            ready = False
+            problems += f"Missing first interface in eGP link {eGP_lien_index} for AS " + str(AS_index+1) + "\n"
+        if eGP_interf2[eGP_lien_index] == "" :
+            ready = False
+            problems += f"Missing second interface in eGP link {eGP_lien_index} for AS " + str(AS_index+1) + "\n"
+        if eGP_addr[eGP_lien_index] == "" :
+            ready = False
+            problems += f"Missing first address in eGP link {eGP_lien_index} for AS " + str(AS_index+1) + "\n"
+        if eGP_addr2[eGP_lien_index] == "" :
+            ready = False
+            problems += f"Missing second address in eGP link {eGP_lien_index} for AS " + str(AS_index+1) + "\n"
+    
+    print(ready)
+
+    if not ready :
+        popup = tk.Toplevel(root)
+        popup.title("Error")
+        tk.Label(popup, text=problems,font=('Arial 18 bold')).pack(side=tk.TOP,fill=tk.X)
+        tk.Button(popup, text="OK", command=popup.destroy).pack(side=tk.BOTTOM,fill=tk.X)
+    else :
+        data = {
+            "AS": {},
+            "liens_eGP": []
+        }
+
+        for AS_index in range(len(routeurs)) :
+            print("Loading AS...")
+            data["AS"]["AS"+str(AS_index+1)] = {
+                "IGP": IGPs[AS_index],
+                "plage_IP": {
+                    "interfaces_physique": plages_ip[AS_index],
+                    "interfaces_loopback": plages_lb[AS_index]
+                },
+                "routeurs": routeurs[AS_index],
+                "liens": [],
+                "voisins": {}
+            }
+
+            for lien_index in range(len(liens[AS_index])) :
+                print("Loading link...")
+                data["AS"]["AS"+str(AS_index+1)]["liens"].append([
+                    [liens[AS_index][lien_index], interf[AS_index][lien_index]],
+                    [liens2[AS_index][lien_index], interf2[AS_index][lien_index]]
+                ])
+
+            for voisin_index in range(len(voisins[AS_index])) :
+                print("Loading neighbor...")
+                data["AS"]["AS"+str(AS_index+1)]["voisins"][voisins[AS_index][voisin_index]] = voisins_type[AS_index][voisin_index]
+
+        print('AS loaded.')
+
+        for eGP_lien_index in range(len(eGP_link)) :
+            print("Loading eGP...")
+            data["liens_eGP"].append([
+                [eGP_link[eGP_lien_index], eGP_interf[eGP_lien_index], eGP_addr[eGP_lien_index]],
+                [eGP_link2[eGP_lien_index], eGP_interf2[eGP_lien_index], eGP_addr2[eGP_lien_index]]
+            ])
+        
+        # Get the current directory
+        current_directory = os.getcwd()
+
+        # Specify the path to the data folder
+        data_folder = os.path.join(current_directory,"Projet_GNS3", 'data')
+
+        print(data_folder)
+
+        # Create the data folder if it doesn't exist
+        if not os.path.exists(data_folder):
+            os.makedirs(data_folder)
+
+        # Get the number of the last JSON file
+        last_json_number = 0
+        for filename in os.listdir(data_folder):
+            if filename.startswith('data-') and filename.endswith('.json'):
+                json_number = int(filename.split('-')[1].split('.')[0])
+                last_json_number = max(last_json_number, json_number)
+
+        # Increment the number for the new JSON file
+        new_json_number = last_json_number + 1
+
+        # Create the new JSON file
+        new_json_filename = os.path.join(data_folder, f'data-{new_json_number}.json')
+
+        print(new_json_filename)
+
+        with open(new_json_filename, 'w') as file:
+            json.dump(data, file, indent=4)
+
+        print(f'Successfully created JSON file: {new_json_filename}')
+
+        popup = tk.Toplevel(root)
+        popup.title("Success")
+        tk.Label(popup, text="File exported successfully",font=('Arial 18 bold')).pack(side=tk.TOP,fill=tk.X)
+        tk.Button(popup, text="OK", command=popup.destroy).pack(side=tk.BOTTOM,fill=tk.X)
+
+
+
 
 root = tk.Tk()
-root.title("Text Entry")
+root.title("Create intent file")
 
 selected = 0
 IGPs = [""]
@@ -338,7 +496,6 @@ routeurs = [[]]
 
 voisins_entries = []
 voisins = [[]]
-
 voisins_type_entries = []
 voisins_type = [[]]
 
@@ -353,8 +510,8 @@ interf2 = [[]]
 
 eGP_link_entries = []
 eGP_link_entries2 = []
-eGP_link = [[]]
-eGP_link2 = [[]]
+eGP_link = []
+eGP_link2 = []
 eGP_interf_entries = []
 eGP_interf_entries2 = []
 eGP_interf = [[]]
@@ -522,5 +679,11 @@ add_eGP_lien()
 # Add AS button
 add_AS = tk.Button(root, text="Add a new AS", command=add_as)
 add_AS.pack(side=tk.TOP,fill=tk.X)
+
+# Add export button
+export = tk.Button(root, text="Export to json file", command=export_func)
+export.pack(side=tk.TOP,fill=tk.X)
+
+
 
 root.mainloop()
