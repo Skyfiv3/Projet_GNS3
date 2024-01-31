@@ -24,7 +24,6 @@
 
         "AS2" : {
             "IGP" : "OSPF",
-            "numero_AS" : 2,
             "plage_IP" : {
                 "interfaces_physique": "2002::/64",
                 "interfaces_loopback": "1002::/64"

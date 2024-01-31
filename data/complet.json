@@ -1,39 +1,125 @@
 {
     "AS": {
         "AS1": {
-            "IGP": "RIP",
+            "IGP": "RIP", 
             "plage_IP": {
                 "interfaces_physique": "2001::/64", 
                 "interfaces_loopback": "1001::/64"
-            },
+            }, 
+            
             "routeurs": [
-                {"nom": "R1", "etat": "interne","Loopback0": "1001::1/64"},
-                {"nom": "R2", "etat": "interne","Loopback0": "1001::2/64"}, 
-                {"nom": "R3", "etat": "bordure","Loopback0": "1001::3/64"}
-                ],
+                {"nom": "R1", "etat": "bordure", "Loopback0": "1001::1/128"}, 
+                {"nom": "R2", "etat": "bordure", "Loopback0": "1001::2/128"}, 
+                {"nom": "R3", "etat": "bordure", "Loopback0": "1001::3/128"}, 
+                {"nom": "R4", "etat": "bordure", "Loopback0": "1001::4/128"}
+            ], 
+
             "liens": [
-                [
-                    {"nom": "R1", 
-                    "GigabitEthernet1/0": "2001:0:0:0::1/64", 
-                    "Loopback0": "1001:0:0:0::1/64"}, 
-                    {"nom": "R2", 
-                    "GigabitEthernet1/0": "2001:0:0:0::2/64", 
-                    "Loopback0": "1001:0:0:0::2/64"}, 
-                    "2001:0:0:0::/64", 
-                    "1001:0:0:0::/64"], 
-                [
-                    {"nom": "R2", 
-                    "GigabitEthernet2/0": "2001:0:0:1::1/64", 
-                    "Loopback0": "1001:0:0:1::1/64"},
-                    {"nom": "R3", 
-                    "GigabitEthernet2/0": "2001:0:0:1::2/64", 
-                    "Loopback0": "1001:0:0:1::2/64"}, 
-                    "2001:0:0:1::/64", 
-                    "1001:0:0:1::/64"]
-            ]
+                [{"nom": "R1", "GigabitEthernet1/0": "2001:0:0:1::1/64"}, {"nom": "R2", "GigabitEthernet1/0": "2001:0:0:1::2/64"}, "2001:0:0:1::/64"], 
+                [{"nom": "R1", "GigabitEthernet2/0": "2001:0:0:2::1/64"}, {"nom": "R3", "GigabitEthernet2/0": "2001:0:0:2::2/64"}, "2001:0:0:2::/64"], 
+                [{"nom": "R2", "GigabitEthernet2/0": "2001:0:0:3::1/64"}, {"nom": "R4", "GigabitEthernet2/0": "2001:0:0:3::2/64"}, "2001:0:0:3::/64"], 
+                [{"nom": "R3", "GigabitEthernet1/0": "2001:0:0:4::1/64"}, {"nom": "R4", "GigabitEthernet1/0": "2001:0:0:4::2/64"}, "2001:0:0:4::/64"]
+            ], 
+            
+            "voisins": {
+                "AS2": "Client", 
+                "AS3": "Client", 
+                "AS4": "Peer", 
+                "AS5": "Fournisseur"
+            }
+        },
+        "AS2": {
+            "IGP": "OSPF", 
+            "numero_AS": 2, 
+            "plage_IP": {
+                "interfaces_physique": "2002::/64", 
+                "interfaces_loopback": "1002::/64"
+            }, 
+
+            "routeurs": [
+                {"nom": "R5", "etat": "bordure", "Loopback0": "1002::1/128"}, 
+                {"nom": "R6", "etat": "interne", "Loopback0": "1002::2/128"}, 
+                {"nom": "R7", "etat": "interne", "Loopback0": "1002::3/128"}, 
+                {"nom": "R8", "etat": "interne", "Loopback0": "1002::4/128"}
+            ], 
+            
+            "liens": [
+                [{"nom": "R5", "GigabitEthernet1/0": "2002:0:0:1::1/64"}, {"nom": "R6", "GigabitEthernet1/0": "2002:0:0:1::2/64"}, "2002:0:0:1::/64"], 
+                [{"nom": "R5", "GigabitEthernet2/0": "2002:0:0:2::1/64"}, {"nom": "R7", "GigabitEthernet2/0": "2002:0:0:2::2/64"}, "2002:0:0:2::/64"], 
+                [{"nom": "R6", "GigabitEthernet2/0": "2002:0:0:3::1/64"}, {"nom": "R8", "GigabitEthernet2/0": "2002:0:0:3::2/64"}, "2002:0:0:3::/64"], 
+                [{"nom": "R7", "GigabitEthernet1/0": "2002:0:0:4::1/64"}, {"nom": "R8", "GigabitEthernet1/0": "2002:0:0:4::2/64"}, "2002:0:0:4::/64"]
+            ], 
+            
+            "voisins": {"AS1": "Principale"}
         }, 
-        
-        
-    "AS2": {"IGP": "OSPF", "numero_AS": 2, "plage_IP": {"interfaces_physique": "2002::/64", "interfaces_loopback": "1002::/64"}, "routeurs": [{"nom": "R4", "etat": "bordure"}, {"nom": "R5", "etat": "interne"}, {"nom": "R6", "etat": "interne"}], "liens": [[{"nom": "R4", "GigabitEthernet2/0": "2002:0:0:0::1/64", "Loopback0": "1002:0:0:0::1/64"}, {"nom": "R5", "GigabitEthernet2/0": "2002:0:0:0::2/64", "Loopback0": "1002:0:0:0::2/64"}, "2002:0:0:0::/64", "1002:0:0:0::/64"], [{"nom": "R5", "GigabitEthernet1/0": "2002:0:0:1::1/64", "Loopback0": "1002:0:0:1::1/64"}, {"nom": "R6", "GigabitEthernet1/0": "2002:0:0:1::2/64", "Loopback0": "1002:0:0:1::2/64"}, 
-"2002:0:0:1::/64", "1002:0:0:1::/64"]]}}, 
-    "liens_eGP": [[["R3", "G3/0", "2003:1::1"], ["R4", "G3/0", "2003:1::2"]]]}
+        "AS3": {
+            "IGP": "OSPF", 
+            "numero_AS": 3, 
+            "plage_IP": {
+                "interfaces_physique": "2003::/64", 
+                "interfaces_loopback": "1003::/64"
+            }, 
+            
+            "routeurs": [
+                {"nom": "R9", "etat": "bordure", "Loopback0": "1003::1/128"}, 
+                {"nom": "R10", "etat": "interne", "Loopback0": "1003::2/128"}, 
+                {"nom": "R11", "etat": "interne", "Loopback0": "1003::3/128"}
+            ], 
+            
+            "liens": [
+                [{"nom": "R9", "GigabitEthernet1/0": "2003:0:0:1::1/64"}, {"nom": "R10", "GigabitEthernet1/0": "2003:0:0:1::2/64"}, "2003:0:0:1::/64"], 
+                [{"nom": "R10", "GigabitEthernet2/0": "2003:0:0:2::1/64"}, {"nom": "R11", "GigabitEthernet2/0": "2003:0:0:2::2/64"}, "2003:0:0:2::/64"]
+            ], 
+            
+            "voisins": {"AS1": "Principale"}
+        }, 
+        "AS4": {
+            "IGP": "OSPF", 
+            "numero_AS": 4,
+            "plage_IP": {
+                "interfaces_physique": "2004::/64", 
+                "interfaces_loopback": "1004::/64"
+            }, 
+            
+            "routeurs": [
+                {"nom": "R12", "etat": "bordure", "Loopback0": "1004::1/128"}, 
+                {"nom": "R13", "etat": "interne", "Loopback0": "1004::2/128"}, 
+                {"nom": "R14", "etat": "interne", "Loopback0": "1004::3/128"}
+            ], 
+            
+            "liens": [
+                [{"nom": "R12", "GigabitEthernet1/0": "2004:0:0:1::1/64"}, {"nom": "R13", "GigabitEthernet1/0": "2004:0:0:1::2/64"}, "2004:0:0:1::/64"], 
+                [{"nom": "R13", "GigabitEthernet2/0": "2004:0:0:2::1/64"}, {"nom": "R14", "GigabitEthernet2/0": "2004:0:0:2::2/64"}, "2004:0:0:2::/64"]
+            ],
+            
+            "voisins": {"AS1": "Principale"}
+        }, 
+        "AS5": {
+            "IGP": "OSPF", 
+            "numero_AS": 5, 
+            "plage_IP": {
+                "interfaces_physique": "2005::/64", 
+                "interfaces_loopback": "1005::/64"
+            }, 
+            
+            "routeurs": [
+                {"nom": "R15", "etat": "bordure", "Loopback0": "1005::1/128"}, 
+                {"nom": "R16", "etat": "interne", "Loopback0": "1005::2/128"}, 
+                {"nom": "R17", "etat": "interne", "Loopback0": "1005::3/128"}
+            ], 
+
+            "liens": [
+                [{"nom": "R15", "GigabitEthernet1/0": "2005:0:0:1::1/64"}, {"nom": "R16", "GigabitEthernet1/0": "2005:0:0:1::2/64"}, "2005:0:0:1::/64"], 
+                [{"nom": "R16", "GigabitEthernet2/0": "2005:0:0:2::1/64"}, {"nom": "R17", "GigabitEthernet2/0": "2005:0:0:2::2/64"}, "2005:0:0:2::/64"]
+            ], 
+            
+            "voisins": {"AS1": "Principale"}
+        }
+    }, 
+    "liens_eGP": [
+        [["R4", "GigabitEthernet3/0", "2003:1::1/64"], ["R5", "GigabitEthernet3/0", "2003:1::2/64"]], 
+        [["R2", "GigabitEthernet3/0", "2003:2::1/64"], ["R9", "GigabitEthernet3/0", "2003:2::2/64"]], 
+        [["R1", "GigabitEthernet3/0", "2003:3::1/64"], ["R12", "GigabitEthernet3/0", "2003:3::2/64"]], 
+        [["R3", "GigabitEthernet3/0", "2003:4::1/64"], ["R15", "GigabitEthernet3/0", "2003:4::2/64"]]
+    ]
+}
