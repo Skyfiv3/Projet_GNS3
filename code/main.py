@@ -202,7 +202,7 @@ def conf_bgp(nom_routeur,AS,loopbacks_voisin,plages,adresses_bordures):
  no bgp default ipv4-unicast"""
     texte_family=f"""\n address-family ipv6"""
     for plage in plages :
-        texte_family+=f"""\n  network {plage}"""
+        texte_family+=f"""\n  network {plage} route-map SET_OWN"""
     
     
         
@@ -251,6 +251,7 @@ ip bgp community new-format
 ip community-list 1 permit 1
 ip community-list 2 permit 2
 ip community-list 3 permit 3
+ip community-list 4 permit 4
 !
 route-map SET_CLIENT_IN permit 10
  set community 1
@@ -264,8 +265,13 @@ route-map SET_PROVIDER_IN permit 10
  set community 3
  set local-preference 50
 !
+route-map SET_OWN permit 10
+ set community 4
+ 
+!
 route-map OUTWARD permit 10
  match community 1
+ match community 4
 !
 control-plane
 !
