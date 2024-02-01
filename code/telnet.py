@@ -6,6 +6,7 @@ import shutil
 from gns3fy import Gns3Connector, Project
 from telnetlib import Telnet
 from time import sleep
+import sys
 
 
 def load_data(intention) :
@@ -170,6 +171,11 @@ def recherche_bordures(data) :
 def constante(router):
 
     config = "!\n!\n!\n!\n!\n!\n!\n!\n\n!\n! Last configuration change at 14:16:26 UTC Wed Dec 20 2023\n!\nversion 15.2\nservice timestamps debug datetime msec\nservice timestamps log datetime msec\n!\nhostname " + router + "\n!\nboot-start-marker\nboot-end-marker\n!\n!\n!\nno aaa new-model\nno ip icmp rate-limit unreachable\nip cef\n!\n!\n!\n!\n!\n!\nno ip domain lookup\nipv6 unicast-routing\nipv6 cef\n!\n!\nmultilink bundle-name authenticated\n!\n!\n!\n!\n!\n!\n!\n!\n!\nip tcp synwait-time 5\n! \n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!"
+    commande("\n", router)
+    commande("\n", router)
+    commande("\n", router)
+
+    sleep(1)
 
     commande("conf t", router)
     commande("ipv6 unicast-routing",router)
@@ -308,7 +314,6 @@ def conf_bgp(nom_routeur,AS,loopbacks_voisin,plages,adresses_bordures):
     
 def set_route_map(nom_routeur):
     texte="""!
-ip bgp community new-format
 ip community-list 1 permit 1
 ip community-list 2 permit 2
 ip community-list 3 permit 3
@@ -353,7 +358,6 @@ line vty 0 4
 end
 """
     commande("conf t",nom_routeur)
-    commande("ip bgp community new-format",nom_routeur)
     commande("ip community-list 1 permit 1",nom_routeur)
     commande("ip community-list 2 permit 2",nom_routeur)
     commande("ip community-list 3 permit 3",nom_routeur)
@@ -560,13 +564,13 @@ def commande(cmd,routeur) :
 
 
 
-repertoire_projet = "C:\\Users\\baptr\\GNS3\\projects\\GNS3_telnet"
+repertoire_projet = sys.argv[1]
+json_file = sys.argv[2]
+project_name = os.path.basename(repertoire_projet)
 
+intentions = load_data(json_file)
 
-          
-intentions = load_data("data_test.json")
-
-noeuds = start_telnet("GNS3_telnet")
+noeuds = start_telnet(project_name)
 
 logic(intentions)
 
