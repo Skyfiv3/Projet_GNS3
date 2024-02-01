@@ -10,8 +10,7 @@ This project is designed to simplify the process of generating configuration fil
     - [Launching the Main Script](#launching-the-main-script)
 3. [File Structure](#file-structure)
 4. [Sample Intent File](#sample-intent-file)
-5. [Our network and intent file]()
-6. [Additional Information](#additional-information)
+5. [Our network and intent file](#our-network-and-intent-file)
 
 ## Prerequisites
 
@@ -44,7 +43,7 @@ To launch the `main.py` script, follow these steps:
     Example:
 
     ```bash
-    python3 main.py /path/to/your/GNS3/project GNS3_intent.json
+    python3 main.py /path/to/your/GNS3/project data.json
     ```
 
 ## File Structure
@@ -56,12 +55,15 @@ To launch the `main.py` script, follow these steps:
     - **config-files:** Folder where generated configuration files are stored.
 
 - **data:**
-    - `GNS3_intent.json`: Sample intent file.
-    - `complet.json`: Representation of the calculated intent file for easier navigation.
+    - `data.json`: Sample intent file.
+    - `complet.json`: A representation of the calculated intent file for easier navigation.
+
+- **image**
+    - `Architecture.png`: A screenshot of our GNS3 network.
 
 ## Sample Intent File
 
-Here is an example of a sample intent file (`GNS3_intent.json`) that represents the network topology:
+Here is an example of a sample intent file that represents the network topology:
 
 ```json
 {
@@ -104,7 +106,3 @@ Here is an example of a sample intent file (`GNS3_intent.json`) that represents 
 Here's our network : 
 ![Screenshot of the GNS3 project](image/Architecture.png)
 You can find the topology in JSON format in `/data/data.json`.
-
-## Additional Information
-
-In the `/data` directory, you can find `complet.json`, which provides a calculated representation of the intent file. This file is used by the python script for easier navigation and understanding of the network configuration.
