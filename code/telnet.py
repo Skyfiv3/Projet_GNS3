@@ -238,24 +238,28 @@ def conf_bgp(nom_routeur,AS,loopbacks_voisin,plages,adresses_bordures):
         texte_family+=f"""\n  network {plage} route-map SET_OWN"""
     
     
-        
     for adresse in loopbacks_voisin:
         texte_routeur+=f"""\n neighbor {adresse[:-4]} remote-as {AS}
  neighbor {adresse[:-4]} update-source Loopback0"""
         texte_family+=f"""\n  neighbor {adresse[:-4]} activate"""
+        texte_family+=f"""\n  neighbor {adresse[:-4]} send-community"""
+        
 
 
-    for adresse,num_AS in adresses_bordures:
+    for adresse,num_AS,type in adresses_bordures:
         texte_routeur+=f"""\n neighbor {adresse[:-3]} remote-as {num_AS}"""
         texte_family+=f"""\n  neighbor {adresse[:-3]} activate"""
-    texte_routeur+=f"""\n !
- address-family ipv4
- exit-address-family
- !"""   
+        texte_family+=f"""\n  neighbor {adresse[:-3]} send-community"""
+        if type == "Client" :
+            texte_family+=f"""\n  neighbor {adresse[:-3]} route-map SET_CLIENT_IN in"""
+            
+        elif type == "Fournisseur" :
+            texte_family+=f"""\n  neighbor {adresse[:-3]} route-map SET_PROVIDER_IN in"""
+            texte_family+=f"""\n  neighbor {adresse[:-3]} route-map OUTWARD out"""
+        elif type=="Peer" :
+            texte_family+=f"""\n  neighbor {adresse[:-3]} route-map SET_PEER_IN in"""
+            texte_family+=f"""\n  neighbor {adresse[:-3]} route-map OUTWARD out"""
         
-        
-    texte_family+="""\n exit-address-family"""
-
 
 
     commande("conf t",nom_routeur)
@@ -275,8 +279,10 @@ def conf_bgp(nom_routeur,AS,loopbacks_voisin,plages,adresses_bordures):
         commande(f"network {plage} route-map SET_OWN",nom_routeur)
     for adresse in loopbacks_voisin:
         commande(f"neighbor {adresse[:-4]} activate",nom_routeur)
-    for adresse,num_AS in adresses_bordures:
+        commande(f"neighbor {adresse[:-4]} send-community",nom_routeur)
+    for adresse,num_AS,type in adresses_bordures:
         commande(f"neighbor {adresse[:-3]} activate",nom_routeur)
+        commande(f"neighbor {adresse[:-3]} send-community",nom_routeur)
         if type == "Client" :
             commande(f"neighbor {adresse[:-3]} route-map SET_CLIENT_IN in",nom_routeur)
             
@@ -322,7 +328,6 @@ route-map SET_PROVIDER_IN permit 10
 !
 route-map SET_OWN permit 10
  set community 4
- 
 !
 route-map OUTWARD permit 10
  match community 1
@@ -414,29 +419,7 @@ ipv6 router ospf {nom[1:]}
         for bordure in bordures :
             texte +=f""" passive-interface {bordure}
 """
-    texte+="""!
-!
-!
-!
-control-plane
-!
-!
-line con 0
- exec-timeout 0 0
- privilege level 15
- logging synchronous
- stopbits 1
-line aux 0
- exec-timeout 0 0
- privilege level 15
- logging synchronous
- stopbits 1
-line vty 0 4
- login
-!
-!
-end
-"""
+   
     if IGP == "RIP" :
         commande("conf t", nom)
         commande("ipv6 router rip connected",nom)
@@ -506,7 +489,14 @@ def logic(data) :
                         for AS_bordure in data["AS"] :
                             for routeur_bordure in data["AS"][AS_bordure]["routeurs"] :
                                 if routeur_bordure["nom"] == bordures[j][0] :
-                                    voisin.append(AS_bordure[2:])
+                                    num_AS = AS_bordure[2:]
+                                    voisin.append(num_AS)
+                        
+                        for AS_voisin in data["AS"][AS]["voisins"] :
+                            if AS_voisin[2:] == num_AS :
+                                voisin.append(data["AS"][AS]["voisins"][AS_voisin])
+                        
+                        
                         
                         addresses_bordures.append(voisin)
 
@@ -570,13 +560,13 @@ def commande(cmd,routeur) :
 
 
 
-repertoire_projet = "C:\\Users\\baptr\\GNS3\\projects\\GNS3DnDnew"
+repertoire_projet = "C:\\Users\\baptr\\GNS3\\projects\\GNS3_telnet"
 
 
           
-intentions = load_data("3-3.json")
+intentions = load_data("data_test.json")
 
-noeuds = start_telnet("untitled")
+noeuds = start_telnet("GNS3_telnet")
 
 logic(intentions)
 

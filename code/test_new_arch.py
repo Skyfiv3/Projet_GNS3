@@ -267,7 +267,6 @@ route-map SET_PROVIDER_IN permit 10
 !
 route-map SET_OWN permit 10
  set community 4
- 
 !
 route-map OUTWARD permit 10
  match community 1
