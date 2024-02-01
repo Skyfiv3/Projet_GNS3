@@ -10,7 +10,8 @@ This project is designed to simplify the process of generating configuration fil
     - [Launching the Main Script](#launching-the-main-script)
 3. [File Structure](#file-structure)
 4. [Sample Intent File](#sample-intent-file)
-5. [Additional Information](#additional-information)
+5. [Our network and intent file]()
+6. [Additional Information](#additional-information)
 
 ## Prerequisites
 
@@ -97,6 +98,12 @@ Here is an example of a sample intent file (`GNS3_intent.json`) that represents 
     ]
 }
 ```
+
+## Our network and intent file
+
+Here's our network : 
+![Screenshot of the GNS3 project](image/Architecture.png)
+You can find the topology in JSON format in `/data/data.json`.
 
 ## Additional Information
 
