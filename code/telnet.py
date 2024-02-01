@@ -308,7 +308,6 @@ def conf_bgp(nom_routeur,AS,loopbacks_voisin,plages,adresses_bordures):
     
 def set_route_map(nom_routeur):
     texte="""!
-ip bgp community new-format
 ip community-list 1 permit 1
 ip community-list 2 permit 2
 ip community-list 3 permit 3
