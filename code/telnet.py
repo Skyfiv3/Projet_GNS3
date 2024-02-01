@@ -235,7 +235,7 @@ def conf_bgp(nom_routeur,AS,loopbacks_voisin,plages,adresses_bordures):
  no bgp default ipv4-unicast"""
     texte_family=f"""\naddress-family ipv6"""
     for plage in plages :
-        texte_family+=f"""\n  network {plage}"""
+        texte_family+=f"""\n  network {plage} route-map SET_OWN"""
     
     
         
@@ -272,7 +272,7 @@ def conf_bgp(nom_routeur,AS,loopbacks_voisin,plages,adresses_bordures):
     
     commande(f"address-family ipv6 unicast",nom_routeur)
     for plage in plages :
-        commande(f"network {plage}",nom_routeur)
+        commande(f"network {plage} route-map SET_OWN",nom_routeur)
     for adresse in loopbacks_voisin:
         commande(f"neighbor {adresse[:-4]} activate",nom_routeur)
     for adresse,num_AS in adresses_bordures:
@@ -306,6 +306,7 @@ ip bgp community new-format
 ip community-list 1 permit 1
 ip community-list 2 permit 2
 ip community-list 3 permit 3
+ip community-list 4 permit 4
 !
 route-map SET_CLIENT_IN permit 10
  set community 1
@@ -319,8 +320,13 @@ route-map SET_PROVIDER_IN permit 10
  set community 3
  set local-preference 50
 !
+route-map SET_OWN permit 10
+ set community 4
+ 
+!
 route-map OUTWARD permit 10
  match community 1
+ match community 4
 !
 control-plane
 !
@@ -341,6 +347,39 @@ line vty 0 4
 !
 end
 """
+    commande("conf t",nom_routeur)
+    commande("ip bgp community new-format",nom_routeur)
+    commande("ip community-list 1 permit 1",nom_routeur)
+    commande("ip community-list 2 permit 2",nom_routeur)
+    commande("ip community-list 3 permit 3",nom_routeur)
+    commande("ip community-list 4 permit 4",nom_routeur)
+    
+    commande("route-map SET_CLIENT_IN permit 10",nom_routeur)
+    commande("set community 1",nom_routeur)
+    commande("set local-preference 150",nom_routeur)
+    commande("exit",nom_routeur)
+    
+    commande("route-map SET_PEER_IN permit 10",nom_routeur)
+    commande("set community 2",nom_routeur)
+    commande("set local-preference 100",nom_routeur)
+    commande("exit",nom_routeur)
+    
+    commande("route-map SET_PROVIDER_IN permit 10",nom_routeur)
+    commande("set community 3",nom_routeur)
+    commande("set local-preference 50",nom_routeur)
+    commande("exit",nom_routeur)
+    
+    commande("route-map SET_OWN permit 10",nom_routeur)
+    commande("set community 4",nom_routeur)
+    commande("exit",nom_routeur)
+    
+    commande("route-map OUTWARD permit 10",nom_routeur)
+    commande("match community 1",nom_routeur)
+    commande("match community 4",nom_routeur)
+    commande("exit",nom_routeur)
+    
+    commande("end",nom_routeur)
+    
     filename = os.path.join(os.path.dirname(__file__), "config_files", nom_routeur + ".cfg")
 
     # Écrire la configuration dans le fichier spécifié
@@ -492,6 +531,9 @@ def logic(data) :
             conf_bgp(routeur["nom"],AS[2:],loopback_voisins,plages_addresses,addresses_bordures)
 
             conf_igp(routeur["nom"],IGP,interfaces_bordures)
+            
+            
+            set_route_map(routeur["nom"])
 
 
 
