@@ -3,10 +3,14 @@ import re
 import json
 import ipaddress
 import shutil
+from gns3fy import Gns3Connector, Project
+from telnetlib import Telnet
 from time import sleep
+import sys
 
-def load_data() :
-    chemin_data = os.path.join(os.path.dirname(__file__),'..','data','data.json')
+
+def load_data(intention) :
+    chemin_data = os.path.join(os.path.dirname(__file__),'..','data',intention)
 
     with open(chemin_data,"r") as data :
         intentions = json.load(data)          
@@ -165,7 +169,19 @@ def recherche_bordures(data) :
 
 
 def constante(router):
+
     config = "!\n!\n!\n!\n!\n!\n!\n!\n\n!\n! Last configuration change at 14:16:26 UTC Wed Dec 20 2023\n!\nversion 15.2\nservice timestamps debug datetime msec\nservice timestamps log datetime msec\n!\nhostname " + router + "\n!\nboot-start-marker\nboot-end-marker\n!\n!\n!\nno aaa new-model\nno ip icmp rate-limit unreachable\nip cef\n!\n!\n!\n!\n!\n!\nno ip domain lookup\nipv6 unicast-routing\nipv6 cef\n!\n!\nmultilink bundle-name authenticated\n!\n!\n!\n!\n!\n!\n!\n!\n!\nip tcp synwait-time 5\n! \n!\n!\n!\n!\n!\n!\n!\n!\n!\n!\n!"
+    commande("\n", router)
+    commande("\n", router)
+    commande("\n", router)
+
+    sleep(1)
+
+    commande("conf t", router)
+    commande("ipv6 unicast-routing",router)
+    commande("end",router)
+
+
 
     # Obtenir le chemin complet du fichier dans le dossier config_files
     filename = os.path.join(os.path.dirname(__file__), "config_files", router + ".cfg")
@@ -176,6 +192,9 @@ def constante(router):
 
         
 def conf_interface(routeur,interface,IGP,adresse):
+
+    # Créer la configuration d'une interface 
+
     texte = f"""\ninterface {interface}
  no ip address"""
     if interface!="Loopback0":
@@ -185,27 +204,46 @@ def conf_interface(routeur,interface,IGP,adresse):
     if IGP == "RIP":
         texte += "\n ipv6 rip connected enable\n!"
         
-    if IGP =="OSPF":
+    elif IGP =="OSPF":
         texte+=f"\n ipv6 ospf {routeur[1:]} area 0\n!"
 
+
+    #Envoi des commande avec telnet
+
+    commande("conf t",routeur)
+    commande(f"interface {interface}",routeur)
+    commande(f"ipv6 enable",routeur)
+    commande(f"ipv6 address {adresse}",routeur)
+
+    if IGP == "RIP" :
+        commande(f"ipv6 rip connected enable",routeur)
+    elif IGP == "OSPF" :
+        commande(f"ipv6 ospf {routeur[1:]} area 0",routeur)
+
+    commande("no shutdown",routeur)
+
+    commande("end",routeur)
+
+
+    # Ouvrir le fichier et ajouter les informations à la fin
     filename = os.path.join(os.path.dirname(__file__), "config_files", routeur + ".cfg")
 
-    # Écrire la configuration dans le fichier spécifié
     with open(filename, 'a') as fichier:
         fichier.write(texte)
 
 
+
 def conf_bgp(nom_routeur,AS,loopbacks_voisin,plages,adresses_bordures):
+
     texte_routeur = f"""\nrouter bgp {AS}
  bgp router-id {nom_routeur[1:]}.{nom_routeur[1:]}.{nom_routeur[1:]}.{nom_routeur[1:]}
  bgp log-neighbor-changes
  no bgp default ipv4-unicast"""
-    texte_family=f"""\n address-family ipv6"""
+    texte_family=f"""\naddress-family ipv6"""
     for plage in plages :
         texte_family+=f"""\n  network {plage} route-map SET_OWN"""
     
     
-        
     for adresse in loopbacks_voisin:
         texte_routeur+=f"""\n neighbor {adresse[:-4]} remote-as {AS}
  neighbor {adresse[:-4]} update-source Loopback0"""
@@ -228,15 +266,44 @@ def conf_bgp(nom_routeur,AS,loopbacks_voisin,plages,adresses_bordures):
             texte_family+=f"""\n  neighbor {adresse[:-3]} route-map SET_PEER_IN in"""
             texte_family+=f"""\n  neighbor {adresse[:-3]} route-map OUTWARD out"""
         
-        
+
+
+    commande("conf t",nom_routeur)
+    commande(f"router bgp {AS}",nom_routeur)
+    commande(f"bgp router-id {nom_routeur[1:]}.{nom_routeur[1:]}.{nom_routeur[1:]}.{nom_routeur[1:]}",nom_routeur)
+    commande(f"no bgp default ipv4-unicast",nom_routeur)
+    for address in loopbacks_voisin:
+        commande(f"neighbor {address[:-4]} remote-as {AS}",nom_routeur)
+        commande(f"neighbor {address[:-4]} update-source Loopback0",nom_routeur)
+    
+    for adresse,num_AS,type in adresses_bordures:
+        commande(f"neighbor {adresse[:-3]} remote-as {num_AS}",nom_routeur)
+
+    
+    commande(f"address-family ipv6 unicast",nom_routeur)
+    for plage in plages :
+        commande(f"network {plage} route-map SET_OWN",nom_routeur)
+    for adresse in loopbacks_voisin:
+        commande(f"neighbor {adresse[:-4]} activate",nom_routeur)
+        commande(f"neighbor {adresse[:-4]} send-community",nom_routeur)
+    for adresse,num_AS,type in adresses_bordures:
+        commande(f"neighbor {adresse[:-3]} activate",nom_routeur)
+        commande(f"neighbor {adresse[:-3]} send-community",nom_routeur)
+        if type == "Client" :
+            commande(f"neighbor {adresse[:-3]} route-map SET_CLIENT_IN in",nom_routeur)
             
-    texte_routeur+=f"""\n !
- address-family ipv4
- exit-address-family
- !"""   
-        
-        
-    texte_family+="""\n exit-address-family"""
+        elif type == "Fournisseur" :
+            commande(f"neighbor {adresse[:-3]} route-map SET_PROVIDER_IN in",nom_routeur)
+            commande(f"neighbor {adresse[:-3]} route-map OUTWARD out",nom_routeur)
+
+        elif type=="Peer" :
+            commande(f"neighbor {adresse[:-3]} route-map SET_PEER_IN in",nom_routeur)
+            commande(f"neighbor {adresse[:-3]} route-map OUTWARD out",nom_routeur)
+           
+    commande(f"end",nom_routeur)
+
+
+
 
     filename = os.path.join(os.path.dirname(__file__), "config_files", nom_routeur + ".cfg")
 
@@ -247,7 +314,6 @@ def conf_bgp(nom_routeur,AS,loopbacks_voisin,plages,adresses_bordures):
     
 def set_route_map(nom_routeur):
     texte="""!
-ip bgp community new-format
 ip community-list 1 permit 1
 ip community-list 2 permit 2
 ip community-list 3 permit 3
@@ -267,7 +333,6 @@ route-map SET_PROVIDER_IN permit 10
 !
 route-map SET_OWN permit 10
  set community 4
- 
 !
 route-map OUTWARD permit 10
  match community 1
@@ -292,13 +357,46 @@ line vty 0 4
 !
 end
 """
+    commande("conf t",nom_routeur)
+    commande("ip community-list 1 permit 1",nom_routeur)
+    commande("ip community-list 2 permit 2",nom_routeur)
+    commande("ip community-list 3 permit 3",nom_routeur)
+    commande("ip community-list 4 permit 4",nom_routeur)
+    
+    commande("route-map SET_CLIENT_IN permit 10",nom_routeur)
+    commande("set community 1",nom_routeur)
+    commande("set local-preference 150",nom_routeur)
+    commande("exit",nom_routeur)
+    
+    commande("route-map SET_PEER_IN permit 10",nom_routeur)
+    commande("set community 2",nom_routeur)
+    commande("set local-preference 100",nom_routeur)
+    commande("exit",nom_routeur)
+    
+    commande("route-map SET_PROVIDER_IN permit 10",nom_routeur)
+    commande("set community 3",nom_routeur)
+    commande("set local-preference 50",nom_routeur)
+    commande("exit",nom_routeur)
+    
+    commande("route-map SET_OWN permit 10",nom_routeur)
+    commande("set community 4",nom_routeur)
+    commande("exit",nom_routeur)
+    
+    commande("route-map OUTWARD permit 10",nom_routeur)
+    commande("match community 1",nom_routeur)
+    commande("match community 4",nom_routeur)
+    commande("exit",nom_routeur)
+    
+    commande("end",nom_routeur)
+    
     filename = os.path.join(os.path.dirname(__file__), "config_files", nom_routeur + ".cfg")
 
     # Écrire la configuration dans le fichier spécifié
     with open(filename, 'a') as fichier:
         fichier.write(texte)
-            
-    
+             
+ 
+ 
     
 def conf_igp(nom,IGP,bordures) :
     texte="""
@@ -325,7 +423,27 @@ ipv6 router ospf {nom[1:]}
         for bordure in bordures :
             texte +=f""" passive-interface {bordure}
 """
-    
+   
+    if IGP == "RIP" :
+        commande("conf t", nom)
+        commande("ipv6 router rip connected",nom)
+        commande("redistribute connected",nom)
+
+    else :
+        commande("conf t", nom)
+        commande(f"ipv6 router ospf {nom[1:]}",nom)
+        commande(f"router-id {nom[1:]}.{nom[1:]}.{nom[1:]}.{nom[1:]}",nom)
+        commande(f"passive-interface Loopback0",nom)
+
+        for bordure in bordures :
+            commande(f"passive-interface {bordure}",nom)
+
+    commande("end",nom)
+
+
+
+
+
     filename = os.path.join(os.path.dirname(__file__), "config_files", nom + ".cfg")
 
     # Écrire la configuration dans le fichier spécifié
@@ -412,26 +530,48 @@ def logic(data) :
             set_route_map(routeur["nom"])
 
 
+
+
+
+
+
 def drag_and_drop(repertoire_projet) :
     dossiers = lister_routers(repertoire_projet)
     for routeur,chemin in dossiers.items() :
         shutil.copy(os.path.join(os.path.dirname(__file__), "config_files",routeur+".cfg"),chemin)
 
+def start_telnet(projet_name) :
+    serveur = Gns3Connector("http://localhost:3080")
+    projet = Project(projet_name, connector=serveur)
+    projet.get()
+    projet.open()
+
+    noeuds = {}
+    for noeud in projet.nodes :
+        noeuds[noeud.name] = Telnet(noeud.console_host,str(noeud.console))
+
+    return noeuds
+
+def commande(cmd,routeur) :
+
+    global noeuds
+
+    noeuds[routeur].write(bytes(cmd+"\r",encoding="ascii"))
+
+    sleep(0.1)
 
 
 
 
-repertoire_projet = "C:\\Users\\baptr\\GNS3\\projects\\GNS3_arch_totale"
 
+repertoire_projet = sys.argv[1]
+json_file = sys.argv[2]
+project_name = os.path.basename(repertoire_projet)
 
-          
-intentions = load_data()
+intentions = load_data(json_file)
+
+noeuds = start_telnet(project_name)
 
 logic(intentions)
 
-drag_and_drop(repertoire_projet)
-
-
-
-
-
+#drag_and_drop(repertoire_projet)
